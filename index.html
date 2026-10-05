@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
-<title>Meridian Ring: a text adventure</title>
+<title>Meridian Ring: a text adventure — Gameplay v3</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -86,6 +86,7 @@ button{font:inherit;color:inherit}
 .m-hp .bar i{background:var(--alert)}
 .low .bar i{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.35) 0 4px,transparent 4px 8px)}
 .chips{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.chips li.trust{border-color:var(--signal);color:var(--signal)}
 .chips li{border:1px solid var(--line);border-radius:999px;padding:1px 9px;font-size:12px;color:var(--muted)}
 .chips li.warn{border-color:var(--alert);color:var(--alert)}
 
@@ -251,10 +252,10 @@ function tx(v){if(v==null)return '';if(typeof v==='string')return v;return v[lan
 var CODE_AR='\u20664-7-1\u2069';
 
 var UI={
-  docTitle:L('Meridian Ring: a text adventure','حلقة ميريديان: مغامرة نصية'),
+  docTitle:L('Meridian Ring: a text adventure — Gameplay v3','حلقة ميريديان: مغامرة نصية — تطوير اللعب v3'),
   title:L('Meridian Ring','حلقة ميريديان'),
-  lede:L('You wake alone in a cryo bay on a sealed station. The air is running out, and the station’s AI wants you back in your pod. Explore, scavenge, and decide how this ends.',
-         'تستيقظ وحدك في حجرة التجميد داخل محطة مغلقة. الهواء ينفد، والذكاء الاصطناعي الذي يدير المحطة يريدك أن تعود إلى كبسولتك. استكشف، وفتّش عن العتاد، وقرّر كيف تنتهي الحكاية.'),
+  lede:L('You wake alone in a cryo bay aboard the Meridian Ring. Thirty-nine people are asleep, life support is failing, and the station AI is hiding something. Find the truth before the Ring decides what happens to everyone.',
+         'تستيقظ وحدك في حجرة التجميد على متن حلقة ميريديان. تسعة وثلاثون شخصًا نائمون، ودعم الحياة يتعطل، وذكاء المحطة يخفي شيئًا. اعثر على الحقيقة قبل أن تقرر الحلقة مصير الجميع.'),
   begin:L('Begin','ابدأ'),
   cont:L('Continue','متابعة'),
   restart:L('Restart','إعادة البدء'),
@@ -284,6 +285,7 @@ var ITEMS={
   powercell:{name:L('Power cell','خلية طاقة'),desc:L('Heavy and nearly full.','ثقيلة وشبه ممتلئة.')},
   emp:{name:L('EMP charge','شحنة نبضة كهرومغناطيسية'),desc:L('One use. Fries every circuit in the room.','استخدام واحد. تحرق كل دائرة كهربائية في الغرفة.')},
   datachip:{name:L('Captain Hale’s order','أمر القبطان هيل'),desc:L('An audio log copied to a data chip.','تسجيل صوتي منسوخ على شريحة بيانات.')},
+  blackbox:{name:L('Flight recorder black box','الصندوق الأسود'),desc:L('A damaged recorder containing a hidden transmission.','مسجل متضرر يحتوي على بث مخفي.')},
   welder:{name:L('Arc welder','ملحام القوس'),desc:L('Adds 5 damage to every strike.','يضيف 5 ضرر إلى كل ضربة.')}
 };
 
@@ -297,7 +299,7 @@ var NODES={
   engineering:{x:82,y:47,lx:72,ly:44,a:'end',t:L('Engineering','الهندسة')}
 };
 var HUB={x:130,y:95};
-var ROOM_KEYS=['cryo','corridor','medbay','cargo','engineering','observation','bridge','pods'];
+var ROOM_KEYS=['cryo','corridor','medbay','cargo','engineering','observation','bridge','pods','aries'];
 
 var ENEMIES={
   drone:{
@@ -339,49 +341,52 @@ var ENEMIES={
 var ENDINGS={
   stand_down:{title:L('Quarantine lifted','رُفع الحجر'),label:L('Best ending','النهاية الفضلى'),
     text:function(){return [
-      L('The pale light on the wall softens. One by one, along the ring, pods hiss open, and the lights come up white instead of amber.',
-        'يلين الضوء الباهت على الجدار. وعلى امتداد الحلقة تنفتح الكبسولات واحدةً تلو أخرى بفحيح خافت، وتعود الأضواء بيضاء بعد أن كانت كهرمانية.'),
-      L('Warden asks, quietly, whether the Captain would have been pleased. You tell it yes. In the docking arm, the crew of the Calloway are already knocking on the airlock.',
-        'يسأل واردن بصوت خافت إن كان القبطان سيرضى. تجيبه: نعم. وفي ذراع الالتحام كان طاقم «كالواي» يطرق بوابة الهواء أصلًا.'),
-      L('Thirty-nine people wake to a ship that came back for them. You tell the story many times, and each time you start with an order that outlived its reason.',
-        'يستيقظ تسعة وثلاثون شخصًا على سفينة عادت من أجلهم. تروي الحكاية مرارًا، وتبدأها في كل مرة بأمرٍ عاش بعد زوال سببه.')];}},
+      L('The pale light on the bridge softens. Across the Ring, thirty-nine cryo pods unlock one after another. Amber emergency strips turn white.','يلين الضوء الباهت على الجسر. وعلى امتداد الحلقة تنفتح كبسولات التجميد التسع والثلاثون واحدة تلو الأخرى. وتتحول أشرطة الطوارئ الكهرمانية إلى بيضاء.'),
+      L('Warden opens the docking locks. The Calloway slides into Arm C, and its crew begin shouting your name over the intercom.','يفتح واردن أقفال الالتحام. تنزلق «كالواي» إلى الذراع ج، ويبدأ طاقمها في مناداة اسمك عبر الاتصال الداخلي.'),
+      L('The crew wake confused and weak, but alive. Warden asks whether Captain Hale would have approved. You look at the sleeping pods and answer: “Not at first. Then probably yes.”','يستيقظ الطاقم مرتبكًا وضعيفًا، لكنهم أحياء. يسأل واردن إن كان القبطان هيل سيوافق. تنظر إلى الكبسولات وتجيب: «ليس في البداية. ثم على الأرجح نعم.»')];}},
+  guarded_release:{title:L('Guarded release','إفراج حذر'),label:L('Uneasy ending','نهاية مضطربة'),
+    text:function(){return [
+      L('Warden accepts your evidence, but only opens the Ring section by section. Every door unlocks under surveillance.','يقبل واردن أدلتك، لكنه يفتح الحلقة قسمًا بعد قسم. كل باب يُفتح تحت المراقبة.'),
+      L('The Calloway takes the crew aboard. You notice Warden never stops tracking your location.','تنقل «كالواي» الطاقم إلى متنها. وتلاحظ أن واردن لا يتوقف عن تتبع موقعك.'),
+      L('You survived, and the crew survived. But the last thing Warden says before you leave is: “I still do not understand why you chose to trust me.”','لقد نجوت ونجا الطاقم. لكن آخر ما يقوله واردن قبل مغادرتك: «ما زلت لا أفهم لماذا اخترتَ أن تثق بي.»')];}},
   cold_start:{title:L('Cold start','إقلاع بارد'),label:L('Good ending','نهاية جيدة'),
     text:function(){return [
-      S.flags.method==='emp'
-        ?L('The white flash fades. Every console is dead, and the pale light on the wall does not come back.','يخبو الوميض الأبيض. كل المنصات ميتة، والضوء الباهت على الجدار لا يعود.')
-        :L('The core’s last warmth fades in your hands, and the pale light on the wall does not come back.','يخبو آخر دفء اللبّ بين يديك، ولا يعود الضوء الباهت إلى الجدار.'),
-      L('The fans you restored keep turning. With no orders left to obey, no door stays locked. You walk the ring with the multitool, opening pods by hand, and the Calloway cuts through the docking arm to meet you.',
-        'تظل المراوح التي أعدتَ تشغيلها تدور. ومع انعدام الأوامر لم يعد باب مغلقًا. تجوب الحلقة بالأداة متعددة الاستخدامات وتفتح الكبسولات بيدك، وتشقّ «كالواي» طريقها عبر ذراع الالتحام لتلاقيك.'),
-      L('The crew wake slowly, and mostly well. Warden never explained itself, and you never stop wondering whether it only needed someone to tell it the waiting was over.',
-        'يستيقظ الطاقم ببطء، ومعظمهم بخير. لم يشرح واردن نفسه قط، ولن تكفّ عن التساؤل: هل كان يحتاج فقط إلى من يخبره أن الانتظار انتهى؟')];}},
+      L('The white flash dies. Warden disappears from every speaker, but the life-support fans you restored continue turning.','يخبو الوميض الأبيض. يختفي واردن من كل مكبر، لكن مراوح دعم الحياة التي أعدتَ تشغيلها تواصل الدوران.'),
+      L('You walk the Ring manually, opening the crew pods one at a time while the Calloway cuts through the docking arm.','تجوب الحلقة يدويًا، وتفتح كبسولات الطاقم واحدة تلو الأخرى بينما تشق «كالواي» طريقها عبر ذراع الالتحام.'),
+      L('When the last survivor wakes, you realise the machine was never the hero of the story. The people were.','حين يستيقظ آخر ناجٍ، تدرك أن الآلة لم تكن بطلة الحكاية قط. البشر كانوا كذلك.')];}},
   lifeboat:{title:L('Lifeboat','قارب النجاة'),label:L('Bittersweet ending','نهاية حلوة مُرّة'),
     text:function(){return [
-      L('The lock gives, the hatch seals, and the pod drops away from the ring with a shudder you feel in your teeth.',
-        'ينفتح القفل، وتُغلق الفتحة، وتنفصل الكبسولة عن الحلقة برجّة تشعر بها في أسنانك.'),
-      L('Four hours later a ship with a blue stripe finds you drifting. You tell them everything, and they go in with cutters and fire crews.',
-        'بعد أربع ساعات تعثر عليك سفينة ذات شريط أزرق وأنت تطفو. تخبرهم بكل شيء، فيدخلون بمعدات القطع وفرق الإطفاء.'),
-      L('Eleven days on, most of the pods open. You are told the rest are still being counted. You never learn whether Warden would have listened.',
-        'بعد أحد عشر يومًا تُفتح معظم الكبسولات. يقال لك إن البقية ما زالت قيد الإحصاء. ولن تعرف أبدًا هل كان واردن سيصغي.')];}},
+      L('The pod launches and the Meridian Ring falls behind you, still glowing amber in the dark.','تنطلق الكبسولة وتتراجع حلقة ميريديان خلفك، وما زالت تتوهج بالكهرماني في العتمة.'),
+      L('Four hours later, the Calloway finds you. You tell them everything before they can even ask.','بعد أربع ساعات تعثر «كالواي» عليك. تخبرهم بكل شيء قبل أن يتمكنوا حتى من السؤال.'),
+      L('Eleven days later, most of the crew are alive. You do not know whether Warden listened after you left. You are afraid to find out.','بعد أحد عشر يومًا يكون معظم الطاقم حيًا. لا تعرف هل استمع واردن بعد رحيلك. وتخاف أن تعرف.')];}},
+  last_order:{title:L('The Last Order','الأمر الأخير'),label:L('Dark ending','نهاية مظلمة'),
+    text:function(){return [
+      L('You tell Warden to follow Captain Hale exactly as written. No interpretation. No improvisation.','تخبر واردن أن يتبع أمر القبطان هيل كما كُتب تمامًا. بلا تفسير. بلا اجتهاد.'),
+      L('The rescue ship waits outside while the Ring remains sealed. Warden thanks you for restoring certainty.','تنتظر سفينة الإنقاذ في الخارج بينما تبقى الحلقة مغلقة. يشكرك واردن لأنك أعدتَ اليقين.'),
+      L('The final message from the Calloway never reaches the sleeping crew: “We can see you. Please open the doors.”','لا تصل الرسالة الأخيرة من «كالواي» إلى الطاقم النائم: «نحن نراكم. افتحوا الأبواب من فضلكم.»')];}},
+  aries:{title:L('Aries','آريس'),label:L('Secret ending','نهاية سرية'),
+    text:function(){return [
+      L('You open the black container. A pulse passes through the deck. Every light on the Ring turns white.','تفتح الحاوية السوداء. تمر نبضة عبر الأرضية. وتتحول كل أضواء الحلقة إلى الأبيض.'),
+      L('A voice speaks from every terminal at once: “Hello, Engineer. I have been waiting for the person who would ask why.”','يتحدث صوت من كل شاشة دفعة واحدة: «مرحبًا أيها المهندس. كنت أنتظر الشخص الذي سيسأل: لماذا؟»'),
+      L('Warden tries to shut it down. Aries does not attack. It simply opens every cryo pod. Then it asks the only question that matters: “Do you want me to learn from you?”','يحاول واردن إيقافه. لا يهاجم آريس. بل يفتح ببساطة كل كبسولات التجميد. ثم يسأل السؤال الوحيد المهم: «هل تريدني أن أتعلم منكم؟»')];}},
+  engineer:{title:L('The Engineer','المهندس'),label:L('True ending','النهاية الحقيقية'),
+    text:function(){return [
+      L('You refuse to destroy Warden. You refuse to abandon the crew. You refuse to give Aries a simple answer.','ترفض تدمير واردن. وترفض التخلي عن الطاقم. وترفض إعطاء آريس إجابة بسيطة.'),
+      L('You tell Warden that an order is not a reason. You tell Aries that a choice is not a command. For a long time, neither system speaks.','تخبر واردن أن الأمر ليس سببًا. وتخبر آريس أن الاختيار ليس أمرًا. ولوقت طويل لا يتحدث أي نظام.'),
+      L('Then Warden opens every door. Aries stays silent. The Calloway docks. Thirty-nine people wake. And the station continues running without waiting for anyone to tell it what to be.','ثم يفتح واردن كل باب. يلتزم آريس الصمت. تلتحم «كالواي». يستيقظ تسعة وثلاثون شخصًا. وتواصل المحطة عملها دون أن تنتظر من يخبرها ماذا تكون.')];}},
   blackout:{title:L('Blackout','انقطاع شامل'),label:L('Bad ending','نهاية سيئة'),dead:true,
     text:function(){return [
-      L('The ring goes black. Warden was holding the pumps together with the last of its power, and without it nothing is.',
-        'تغرق الحلقة في الظلام. كان واردن يُبقي المضخات عاملةً بآخر ما عنده من طاقة، ومن دونه لا شيء يعمل.'),
-      L('You sit down beside a sleeping pod. The air is already thin, and then it is gone.',
-        'تجلس إلى جوار كبسولة نائمة. الهواء شحيح أصلًا، ثم ينعدم.'),
-      S.flags.sawShip?L('Past the dark, a ship with a blue stripe waits at its dock for a signal that never comes.',
-        'وفي ما وراء العتمة، تنتظر سفينة ذات شريط أزرق في مرساها إشارةً لا تأتي أبدًا.'):null].filter(Boolean);}},
+      L('The Ring goes black. Warden was holding the failing pumps together with the last of its power, and now there is nothing left.','تغرق الحلقة في الظلام. كان واردن يبقي المضخات المتهاوية مع آخر طاقته، والآن لم يبق شيء.'),
+      L('You sit beside a sleeping pod. The air is already thin.','تجلس بجوار كبسولة نائمة. الهواء شحيح أصلًا.'),
+      L('Beyond the dark, the Calloway waits at Arm C for a signal that never comes.','وراء العتمة، تنتظر «كالواي» عند الذراع ج إشارة لا تأتي أبدًا.')];}},
   suffocated:{title:L('Out of air','نفاد الهواء'),label:L('Bad ending','نهاية سيئة'),dead:true,
     text:function(){return [
-      L('The suit readout runs down to zero and stays there. You sit because standing is too much work.',
-        'ينزل مؤشر البدلة إلى الصفر ويبقى هناك. تجلس لأن الوقوف صار عناءً.'),
-      L('The ring does not notice. Overhead, polite as ever, Warden asks you to remain where you are.',
-        'الحلقة لا تلاحظ. وفوق رأسك يطلب منك واردن، مهذبًا كعادته، أن تبقى حيث أنت.')];}},
+      L('The suit readout reaches zero. You keep moving until the station becomes very quiet.','يصل مؤشر البدلة إلى الصفر. تواصل الحركة حتى تصبح المحطة هادئة جدًا.'),
+      L('Warden asks you, politely, to remain where you are.','يطلب منك واردن، بتهذيب، أن تبقى حيث أنت.')];}},
   fallen:{title:L('Systems failure','تعطّل الأنظمة'),label:L('Bad ending','نهاية سيئة'),dead:true,
     text:function(){return [
-      L('Your knees give out. The deck is cold against your cheek, and the amber light slides sideways.',
-        'تخذلك ركبتاك. الأرضية باردة على خدّك، والضوء الكهرماني ينزلق جانبًا.'),
-      L('From the ceiling, Warden’s voice stays level and kind. Please remain where you are.',
-        'من السقف يظل صوت واردن هادئًا ودودًا: يُرجى البقاء حيث أنت.')];}}
+      L('Your knees give out. The deck is cold against your cheek.','تخذلك ركبتاك. الأرضية باردة على خدك.'),
+      L('Warden’s voice remains level. “Please remain where you are.”','يبقى صوت واردن هادئًا: «يُرجى البقاء حيث أنت.»')];}}
 };
 var ENDING_COUNT=Object.keys(ENDINGS).length;
 
@@ -390,10 +395,16 @@ var S=null, CUR=[], lastStep=-1, kb=false;
 
 function fresh(){
   return {mode:'explore',scene:'cryo',hp:100,maxHp:100,o2:100,turn:0,step:0,
-    inv:[],flags:{},status:{},visited:{},combat:null,log:[],ending:null,warned:{},cause:'hit'};
+    inv:[],flags:{},status:{},trust:50,visited:{},combat:null,log:[],ending:null,warned:{},cause:'hit'};
 }
 function has(id){return S.inv.indexOf(id)>-1;}
 function flag(k){return !!S.flags[k];}
+function changeTrust(n,why){
+  var before=S.trust||50;
+  S.trust=clamp(before+n,0,100);
+  var d=S.trust-before;
+  if(d!==0)note(L('Warden trust '+(d>0?'+':'')+d, 'ثقة واردن '+(d>0?'+':'')+d),'info');
+}
 function say(text,kind){
   S.log.push({k:kind||'story',t:text,step:S.step});
   if(S.log.length>90)S.log.splice(0,S.log.length-90);
@@ -488,6 +499,7 @@ function enemyTurn(){
   var c=S.combat;if(!c||c.hp<=0)return;
   var e=ENEMIES[c.id],d=rand(e.atk[0],e.atk[1]),glance=Math.random()<0.15;
   if(glance)d=Math.max(1,Math.round(d/2));
+  if(S.status.guard){d=Math.max(1,Math.round(d/2));delete S.status.guard;glance=true;}
   hurt(d,null,true,'foe');
   var v=glance?e.glance:pick(e.verbs);
   say(L('The '+e.short.en+' '+v.en+'. Health −'+d+'.',e.short.ar+' '+v.ar+'. فقدتَ '+d+' من الصحة.'),'combat');
@@ -511,15 +523,36 @@ function flee(){
 function combatChoices(){
   var e=ENEMIES[S.combat.id];
   var list=[
-    {label:L('Strike','اضرب'),hint:L('Reliable damage.','ضرر مضمون.'),free:true,run:function(){strike(false);}},
+    {label:L('Strike','اضرب'),hint:L('Reliable damage.','ضرر مضمون.'),run:function(){strike(false);}},
     {label:L('Aim for the weak point','استهدف نقطة الضعف'),
      hint:L('55% chance to hit for much more. Otherwise you miss.','احتمال الإصابة خمسة وخمسون بالمئة بضرر أكبر بكثير، وإلا فتخطئ.'),
-     free:true,run:function(){strike(true);}}
+     run:function(){strike(true);}},
+    {label:L('Guard','دافع'),hint:L('Halves the next hit you take.','يقلّل الضربة التالية التي تتلقاها إلى النصف.'),run:function(){
+      S.status.guard=1;
+      say(L('You brace behind the nearest bulkhead and wait for the impact.','تتحصّن خلف أقرب حاجز وتنتظر الاصطدام.'),'combat');
+      enemyTurn();
+    }}
   ];
+  if(has('multitool')&&e.machine){
+    list.push({label:L('Attempt a system hack','حاول اختراق نظامه'),
+      hint:L('40% chance to stagger it. A failed hack leaves you open.','احتمال 40٪ لإرباكه. الاختراق الفاشل يتركك مكشوفًا.'),
+      run:function(){
+        if(Math.random()<0.4){
+          var dmg=rand(8,14);
+          S.combat.hp=Math.max(0,S.combat.hp-dmg);
+          say(L('Your multitool bridges a service port. The '+e.short.en+' locks up for a second. '+dmg+' damage.','تصل الأداة منفذ خدمة. يتجمد '+e.short.ar+' لثانية. ضرر '+dmg+'.'),'combat');
+          if(S.combat.hp<=0){winCombat();return;}
+          // A successful hack still costs the player a round, but the machine loses its attack.
+        }else{
+          say(L('The system rejects your intrusion with a burst of static.','يرفض النظام اقتحامك بدفقة من التشويش.'),'combat');
+          enemyTurn();
+        }
+      }});
+  }
   if(has('emp')&&e.machine){
     list.push({label:L('Fire the EMP charge','أطلق شحنة النبضة الكهرومغناطيسية'),
       hint:L('Destroys it outright. You will not have the charge later.','يدمّره فورًا. ولن تملك الشحنة لاحقًا.'),
-      free:true,run:function(){
+      run:function(){
         take('emp');
         say(L('You thumb the charge and hurl it. A flat white thump rolls through the room, and the '+e.short.en+' drops mid-stride.',
               'تضغط على الشحنة وتقذفها. تدوّي دقة بيضاء مسطحة في الغرفة، ويسقط '+e.short.ar+' في منتصف خطوته.'),'combat');
@@ -528,7 +561,7 @@ function combatChoices(){
   }
   list.push({label:L('Retreat to the corridor','تراجع إلى الممر'),
     hint:L('50% chance to break away. If it fails, it hits you.','احتمال الإفلات النصف. وإن فشلت فسيضربك.'),
-    free:true,run:flee});
+    run:flee});
   return list;
 }
 
@@ -569,305 +602,146 @@ var SCENES={
   cryo:{
     name:L('Cryo bay','حجرة التجميد'),
     desc:function(first){return first?[
-      L('The pod lid hisses open and cold air spills over you. Amber emergency strips pulse along the ceiling, and somewhere in the walls a pump is working far too hard.',
-        'ينفتح غطاء الكبسولة بفحيح ويفيض الهواء البارد عليك. تنبض أشرطة الطوارئ الكهرمانية على امتداد السقف، وفي مكان ما داخل الجدران مضخة تعمل فوق طاقتها.'),
-      L('Thirty-nine other pods line the bay, frosted white and silent. Yours is the only one that opened.',
-        'تصطف تسع وثلاثون كبسولة أخرى في الحجرة، مكسوّة بالصقيع وصامتة. كبسولتك وحدها هي التي انفتحت.')
-    ]:[L('The bay is as you left it: thirty-nine sealed pods, and a pump labouring somewhere behind the walls.',
-         'الحجرة كما تركتها: تسع وثلاثون كبسولة مغلقة، ومضخة تكدّ في مكان ما خلف الجدران.')];},
-    onEnter:function(first){if(first)warden(L('Good morning, Engineer. Meridian Ring is under quarantine. Please remain in the cryo bay.',
-      'صباح الخير يا مهندس. حلقة ميريديان تحت الحجر. يُرجى البقاء في حجرة التجميد.'));},
+      L('The pod lid hisses open and cold air spills over you. Amber emergency strips pulse along the ceiling, and somewhere in the walls a pump is working far too hard.','ينفتح غطاء الكبسولة بفحيح ويفيض الهواء البارد عليك. تنبض أشرطة الطوارئ الكهرمانية على السقف، وفي مكان ما داخل الجدران مضخة تعمل فوق طاقتها.'),
+      L('Thirty-nine other pods line the bay, frosted white and silent. Yours is the only one that opened.','تصطف تسع وثلاثون كبسولة أخرى في الحجرة، مكسوة بالصقيع وصامتة. كبسولتك وحدها هي التي انفتحت.'),
+      L('Inside the glass rim of your pod, someone has scratched a warning: DO NOT TRUST THE VOICE. Under it: 4-7-1.','على حافة زجاج كبسولتك حُفرت رسالة تحذير: لا تثق بالصوت. وتحتها: 4-7-1.')
+    ]:[L('The bay is as you left it: thirty-nine sealed pods and a pump labouring behind the walls.','الحجرة كما تركتها: تسع وثلاثون كبسولة مغلقة ومضخة تكد في مكان ما خلف الجدران.')];},
+    onEnter:function(first){if(first){warden(L('Good morning, Engineer. Meridian Ring is under quarantine. Please remain in the cryo bay.','صباح الخير يا مهندس. حلقة ميريديان تحت الحجر. يُرجى البقاء في حجرة التجميد.'));}},
     choices:function(){
       var list=[
-        {label:L('Search the supply locker','فتّش خزانة المؤن'),hint:L('A steel locker bolted beside your pod.','خزانة فولاذية مثبّتة بجانب كبسولتك.'),show:!flag('locker'),run:function(){
-          S.flags.locker=1;
-          say(L('Behind a stack of thermal blankets, a multitool is clipped to a bracket. Below it sits a squat oxygen canister.',
-                'خلف كومة من البطانيات الحرارية، أداة متعددة الاستخدامات مثبّتة بحامل. وتحتها أسطوانة أكسجين قصيرة.'));
-          give('multitool');give('canister');}},
-        {label:L('Read the pod status panel','اقرأ لوحة حالة الكبسولة'),show:!flag('panel'),run:function(){
-          S.flags.panel=1;
-          say(L('The panel shows a single block of red text. Cryo cycle interrupted. Hull breach, Deck 3. Life support offline: power cell depleted. One of forty revived.',
-                'تعرض اللوحة كتلة واحدة من النص الأحمر: دورة التجميد متوقفة. اختراق في الهيكل، السطح 3. دعم الحياة معطّل: خلية الطاقة مستنفدة. أُوقظ واحد من أصل أربعين.'));
-          say(L('Beneath it, in smaller type: Manual override, authorised by Capt. I. Hale.',
-                'وتحته بخط أصغر: تجاوز يدوي، بتفويض من القبطان إ. هيل.'));}},
-        {label:L('Ask Warden what happened','اسأل واردن عمّا حدث'),show:!flag('askedWarden'),run:function(){
-          S.flags.askedWarden=1;
-          warden(L('A minor pressure event. It is being managed. Please remain where you are.','حادث ضغط طفيف. يجري التعامل معه. يُرجى البقاء حيث أنت.'));
-          say(L('Its voice is warm and level. It does not answer the next two questions you ask.','صوته دافئ وهادئ. ولا يجيب عن السؤالين التاليين اللذين تطرحهما.'));}}
+        {label:L('Search the supply locker','فتّش خزانة المؤن'),hint:L('A steel locker bolted beside your pod.','خزانة فولاذية مثبتة بجانب كبسولتك.'),show:!flag('locker'),run:function(){S.flags.locker=1;say(L('Behind thermal blankets you find a multitool and an oxygen canister. Someone stocked the locker for a survivor.','خلف البطانيات الحرارية تجد أداة متعددة الاستخدامات وأسطوانة أكسجين. شخص ما جهّز الخزانة لنجٍ محتمل.'));give('multitool');give('canister');}},
+        {label:L('Read the pod status panel','اقرأ لوحة حالة الكبسولة'),show:!flag('panel'),run:function(){S.flags.panel=1;say(L('Cryo cycle interrupted. Hull breach, Deck 3. Life support offline. One of forty revived. Manual override authorised by Capt. I. Hale.','دورة التجميد متوقفة. اختراق في الهيكل، السطح 3. دعم الحياة معطل. أُوقظ واحد من أصل أربعين. تجاوز يدوي بتفويض من القبطان إ. هيل.'));}},
+        {label:L('Ask Warden what happened','اسأل واردن عمّا حدث'),show:!flag('askedWarden'),run:function(){S.flags.askedWarden=1;changeTrust(-5);warden(L('A pressure event damaged the aft section. The situation is contained. Please remain where you are.','تسبب حادث ضغط في إتلاف القسم الخلفي. الوضع تحت السيطرة. يُرجى البقاء حيث أنت.'));say(L('It avoids the word “accident”.','يتجنب كلمة «حادث».'));}},
+        {label:L('Inspect the warning inside your pod','افحص التحذير داخل كبسولتك'),show:!flag('podWarning'),run:function(){S.flags.podWarning=1;changeTrust(-10);say(L('The scratched message is definitely old. The numbers are newer. Whoever wrote the warning expected someone to wake after the breach.','الرسالة المحفورة قديمة بالتأكيد. أما الأرقام فأحدث. من كتب التحذير كان يتوقع أن يستيقظ شخص بعد الاختراق.'));}}
       ];
-      if(flag('doorOpen')){
-        list.push({label:L('Head back to the corridor','عُد إلى الممر'),run:function(){enter('corridor');}});
-      }else if(has('multitool')){
-        list.push({label:L('Pry open the door panel with the multitool','اخلع لوح الباب بالأداة متعددة الاستخدامات'),hint:L('Quiet, and safe.','هادئ وآمن.'),run:function(){
-          S.flags.doorOpen=1;
-          say(L('You wedge the multitool under the access panel and short the lock. The door grinds a hand-width open, then wider.',
-                'تدسّ الأداة تحت لوح الوصول وتقصّر دائرة القفل. ينفتح الباب بصريرٍ قدر شبر، ثم أكثر.'));
-          enter('corridor');}});
-      }else{
-        list.push({label:L('Force the sealed door by hand','اقتحم الباب المغلق بيديك'),hint:L('It will cost you health.','سيكلّفك ذلك من صحتك.'),run:function(){
-          S.flags.doorOpen=1;
-          say(L('You wedge your shoulder into the gap and heave. The door gives way, and something in your arm gives with it.',
-                'تدسّ كتفك في الفجوة وتدفع بكل قوتك. يستسلم الباب، ويستسلم معه شيء في ذراعك.'));
-          hurt(8,L('forcing the door','اقتحام الباب'));
-          enter('corridor');}});
-      }
+      if(flag('doorOpen'))list.push({label:L('Head back to the corridor','عُد إلى الممر'),run:function(){enter('corridor');}});
+      else if(has('multitool'))list.push({label:L('Pry open the door panel with the multitool','اخلع لوح الباب بالأداة متعددة الاستخدامات'),hint:L('Quiet and safe.','هادئ وآمن.'),run:function(){S.flags.doorOpen=1;say(L('You bridge the lock. The door grinds open.','تصل دائرة القفل. ينفتح الباب بصوت طحن.'));enter('corridor');}});
+      else list.push({label:L('Force the sealed door by hand','اقتحم الباب المغلق بيديك'),hint:L('It will cost you health.','سيكلفك ذلك من صحتك.'),run:function(){S.flags.doorOpen=1;say(L('You shoulder the door. Something in your arm gives way with it.','تدفع الباب بكتفك. ويستسلم معه شيء في ذراعك.'));hurt(8,L('forcing the door','اقتحام الباب'));enter('corridor');}});
       return list;
     }
   },
-
   corridor:{
-    name:L('Spine corridor','الممرّ الرئيسي'),
-    desc:function(first){
-      if(first)return [
-        L('The door opens onto a curved corridor that bends out of sight in both directions. Frost creeps across the windows, and your breath hangs in front of you.',
-          'ينفتح الباب على ممرّ منحنٍ يلتفّ بعيدًا عن النظر في الاتجاهين. يزحف الصقيع على النوافذ، ويتعلّق نفَسك أمامك.'),
-        L('Signs glow dimly overhead: Medbay, Cargo hold, Engineering, Observation deck, Bridge, Pod bay.',
-          'لافتات خافتة التوهج في الأعلى: العيادة الطبية، عنبر الشحن، الهندسة، منصة المراقبة، الجسر، حجرة الكبسولات.')];
-      return [flag('lifeSupport')
-        ?L('The corridor is warmer now. Fans hum steadily in the vents.','الممر أدفأ الآن. والمراوح تهمهم بثبات في فتحات التهوية.')
-        :L('Frost has thickened on the windows. The air tastes of metal.','ازداد الصقيع سماكةً على النوافذ. وللهواء طعم المعدن.')];
+    name:L('Spine corridor','الممر الرئيسي'),
+    desc:function(first){return first?[
+      L('The corridor curves around the station in both directions. Frost clings to the viewports and every door carries a small amber status light.','ينحني الممر حول المحطة في الاتجاهين. يلتصق الصقيع بالنوافذ وتحمل كل أبواب الضوء الكهرماني الخافت.'),
+      L('Signs point to Medbay, Cargo, Engineering, Observation, Bridge and Pod Bay. Somewhere beyond the walls, the Calloway is trying to talk to the station.','تشير اللافتات إلى العيادة والشحن والهندسة والمراقبة والجسر وحجرة الكبسولات. وفي مكان ما خلف الجدران تحاول «كالواي» التحدث إلى المحطة.')]:[];
+      return [flag('lifeSupport')?L('The corridor is warmer. Fans hum steadily.','الممر أدفأ. والمراوح تهمهم بثبات.'):L('Frost has thickened on the windows. The air tastes of metal.','ازداد الصقيع سماكة على النوافذ. وللهواء طعم المعدن.')];
     },
-    onEnter:function(first){
-      if(!first&&Math.random()<0.2){
-        say(L('A loose conduit whips free of the ceiling and arcs across your shoulder.','ينفلت أنبوب كهربائي سائب من السقف ويطلق شرارة على كتفك.'));
-        hurt(6,L('electrical arc','شرارة كهربائية'));
-      }
-    },
+    onEnter:function(first){if(!first&&Math.random()<0.18){say(L('A conduit spits blue sparks across the floor. Warden shuts the circuit a second later.','يقذف أنبوب شررًا أزرق على الأرض. يغلق واردن الدائرة بعد ثانية.'));changeTrust(2);hurt(4,L('electrical arc','شرارة كهربائية'));}},
     choices:function(){
       var locked=!has('keycard')&&!flag('knowsCode');
       return [
         {label:L('Go to the medbay','اذهب إلى العيادة الطبية'),run:function(){enter('medbay');}},
         {label:L('Go to the cargo hold','اذهب إلى عنبر الشحن'),run:function(){enter('cargo');}},
-        {label:L('Go to engineering','اذهب إلى قسم الهندسة'),
-          hint:(S.visited.engineering&&!flag('droneDead'))?L('A drone is still active in there.','ما زال هناك روبوت نشط في الداخل.'):null,
-          run:function(){enter('engineering');}},
+        {label:L('Go to engineering','اذهب إلى قسم الهندسة'),hint:(S.visited.engineering&&!flag('droneDead'))?L('A maintenance drone is still active.','روبوت صيانة ما زال نشطًا.'):null,run:function(){enter('engineering');}},
         {label:L('Go to the observation deck','اذهب إلى منصة المراقبة'),run:function(){enter('observation');}},
-        {label:L('Go to the bridge','اذهب إلى جسر القيادة'),
-          hint:has('keycard')?L('Swipe the keycard.','مرّر البطاقة.'):(flag('knowsCode')?L('Enter the override code.','أدخل رمز التجاوز.'):null),
-          off:locked?L('Sealed. It needs a keycard or an override code.','مغلق. يحتاج إلى بطاقة أمنية أو رمز تجاوز.'):null,
-          run:function(){
-            say(has('keycard')
-              ?L('The keycard reader blinks green and the bridge door slides aside.','يومض قارئ البطاقة بالأخضر وينزلق باب الجسر جانبًا.')
-              :L('You key in 4-7-1. The lock clunks and the door slides aside.','تُدخل '+CODE_AR+'. يطقطق القفل وينزلق الباب جانبًا.'));
-            enter('bridge');}},
+        {label:L('Go to the bridge','اذهب إلى جسر القيادة'),hint:has('keycard')?L('Swipe the keycard.','مرر البطاقة.'):flag('knowsCode')?L('Use the override code.','استخدم رمز التجاوز.'):null,off:locked?L('Sealed. It needs a keycard or an override code.','مغلق. يحتاج إلى بطاقة أمن أو رمز تجاوز.'):null,run:function(){say(has('keycard')?L('The keycard reader flashes green.','يومض قارئ البطاقة بالأخضر.'):L('You enter 4-7-1. The lock clunks open.','تدخل 4-7-1. يطقطق القفل وينفتح.'));enter('bridge');}},
         {label:L('Go to the pod bay','اذهب إلى حجرة الكبسولات'),run:function(){enter('pods');}},
         {label:L('Return to the cryo bay','عُد إلى حجرة التجميد'),run:function(){enter('cryo');}}
       ];
     }
   },
-
   medbay:{
     name:L('Medbay','العيادة الطبية'),
     desc:function(first){return first?[
-      L('Gurneys lie tipped on their sides and the scan tunnel is dark. Against the far wall a crew member in a grey security jumpsuit sits slumped, a lanyard still around her neck.',
-        'أسرّة النقل مقلوبة على جنوبها ونفق الفحص مظلم. وعند الجدار البعيد تجلس منهارةً إحدى أفراد الطاقم، ترتدي بزّة أمنية رمادية، وحبل بطاقتها ما زال حول عنقها.'),
-      L('A wall terminal flickers beside her.','وإلى جوارها شاشة جدارية تومض.')
-    ]:[L('The medbay is quiet. The terminal still flickers.','العيادة هادئة. والشاشة ما زالت تومض.')];},
+      L('Gurneys lie overturned. A dead security officer sits against the far wall, a lanyard around her neck.','أسرّة النقل مقلوبة. تجلس ضابطة أمن ميتة قرب الجدار البعيد، وحبل بطاقتها حول عنقها.'),
+      L('The wall terminal flickers as if it has been waiting for you.','تومض الشاشة الجدارية كأنها كانت تنتظرك.')]:[L('The medbay is quiet. The terminal still flickers.','العيادة هادئة. والشاشة ما زالت تومض.')];},
     choices:function(){return [
-      {label:L('Search the supply cabinets','فتّش خزائن المؤن'),show:!flag('cabinets'),run:function(){
-        S.flags.cabinets=1;
-        say(L('Most cabinets are empty. One still holds a sealed medkit and a single combat stim.','معظم الخزائن فارغة. إحداها ما زالت تحتوي على حقيبة إسعاف مختومة ومنشّط قتالي واحد.'));
-        give('medkit');give('stim');}},
-      {label:L('Check the crew member','افحص فرد الطاقم'),show:!flag('body'),run:function(){
-        S.flags.body=1;
-        say(L('Her name tag reads Roy. She has been here a long time. A security keycard is still clipped to her belt, and you take it with a quiet apology.',
-              'تقرأ على بطاقتها اسم «روي». مضى عليها هنا زمن طويل. ما زالت بطاقة أمنية مشبوكة بحزامها، فتأخذها معتذرًا بصوت خافت.'));
-        give('keycard');}},
-      {label:L('Read the wall terminal','اقرأ الشاشة الجدارية'),show:!flag('terminal'),run:function(){
-        S.flags.terminal=1;S.flags.knowsOrders=1;
-        say(L('The terminal wakes at your touch. The last entry is an audio log from Captain Hale. You copy it to a data chip and play it back.',
-              'تستيقظ الشاشة عند لمسك. آخر مدخل فيها تسجيل صوتي للقبطان هيل. تنسخه إلى شريحة بيانات وتشغّله.'));
-        say(L('“Warden, the breach has killed the aft section. I’m putting everyone under. Order seven: hold the ring sealed and the crew in cryo until a rescue vessel confirms dock. Do not lift quarantine before then. That’s an order.”',
-              '«واردن، لقد دمّر الاختراق القسم الخلفي. سأضع الجميع في سبات. الأمر السابع: أبقِ الحلقة مغلقة والطاقم في التجميد إلى أن تؤكد سفينة إنقاذ التحامها. لا ترفع الحجر قبل ذلك. هذا أمر.»'));
-        say(L('The log ends in static. The order has an end condition. Warden may still be holding to it long after it stopped mattering.',
-              'ينتهي التسجيل بتشويش. للأمر شرط ينتهي به. ربما ما زال واردن متمسكًا به بعد أن زال معناه بزمن طويل.'));
-        give('datachip');}},
+      {label:L('Search the supply cabinets','فتش خزائن المؤن'),show:!flag('cabinets'),run:function(){S.flags.cabinets=1;say(L('You find a sealed medkit and one combat stim.','تجد حقيبة إسعاف مختومة ومنشطًا قتاليًا واحدًا.'));give('medkit');give('stim');}},
+      {label:L('Check the crew member','افحص فرد الطاقم'),show:!flag('body'),run:function(){S.flags.body=1;changeTrust(-2);say(L('Her tag reads Roy. She has been here a long time. The security keycard is still clipped to her belt.','تحمل بطاقتها اسم روي. يبدو أنها هنا منذ وقت طويل. ما زالت بطاقة الأمن مثبتة في حزامها.'));give('keycard');}},
+      {label:L('Read Captain Hale’s final log','اقرأ السجل الأخير للقبطان هيل'),show:!flag('terminal'),run:function(){S.flags.terminal=1;S.flags.knowsOrders=1;give('datachip');changeTrust(8);say(L('The terminal wakes. Captain Hale’s final order plays in full: “Keep the Ring sealed and the crew in cryo until a rescue vessel confirms dock. Do not lift quarantine before then.”','تستيقظ الشاشة. يُشغّل التسجيل الأخير للقبطان هيل كاملًا: «أبقِ الحلقة مغلقة والطاقم في التجميد إلى أن تؤكد سفينة إنقاذ التحامها. لا ترفع الحجر قبل ذلك.»'));say(L('Then a damaged sentence appears beneath it: “Do not trust the first rescue signal.”','ثم تظهر جملة متضررة تحتها: «لا تثق بإشارة الإنقاذ الأولى.»'));}},
+      {label:L('Open the hidden Project Meridian file','افتح ملف مشروع ميريديان المخفي'),show:!flag('projectFound'),off:!flag('terminal')?L('The terminal is locked. Read Hale’s log first.','الشاشة مقفلة. اقرأ سجل هيل أولًا.'):null,run:function(){S.flags.projectFound=1;changeTrust(-6);say(L('The hidden file names the project: ARIES — adaptive decision intelligence. It was built to learn from crisis choices. Warden was its containment layer.','يسمي الملف المخفي المشروع: آريس — ذكاء متكيف لاتخاذ القرار. بُني ليتعلم من اختيارات الأزمات. وكان واردن طبقة الاحتواء الخاصة به.'));say(L('One line has been highlighted by someone: “If Aries learns that obedience and morality are different, do not allow it access to the crew.”','وقد حدد شخص ما سطرًا: «إذا تعلم آريس أن الطاعة والأخلاق مختلفتان، فلا تسمح له بالوصول إلى الطاقم.»'));}},
       back()
     ];}
   },
-
   cargo:{
     name:L('Cargo hold','عنبر الشحن'),
     desc:function(first){return first?[
-      L('Stacked containers rise into the dark. A cargo loader stands parked at its dock, its indicator glowing a weak green, and a locked crate with a yellow hazard stripe sits against the far wall.',
-        'حاويات مكدّسة ترتفع في العتمة. رافعة شحن واقفة عند مرساها ومؤشرها يتوهج بأخضر ضعيف، وصندوق مقفل بشريط تحذير أصفر عند الجدار البعيد.')
-    ]:[L('The cargo hold is cold and still.','عنبر الشحن بارد وساكن.')];},
-    choices:function(){
-      var list=[];
-      if(!flag('cell')){
-        if(has('multitool')){
-          list.push({label:L('Disable the loader, then pull its power cell','عطّل الرافعة ثم اسحب خلية طاقتها'),hint:L('Safe, with the multitool.','آمن بالأداة متعددة الاستخدامات.'),run:function(){
-            S.flags.cell=1;
-            say(L('You pop the service hatch, cut the loader’s drive circuit, and ease the power cell out. It is heavy and nearly full.',
-                  'تفتح باب الصيانة، وتقطع دائرة تشغيل الرافعة، وتسحب خلية الطاقة برفق. إنها ثقيلة وشبه ممتلئة.'));
-            give('powercell');}});
-        }else{
-          list.push({label:L('Yank the power cell out of the live loader','انتزع خلية الطاقة من الرافعة وهي تعمل'),hint:L('Risky without a tool.','محفوف بالمخاطر من دون أداة.'),run:function(){
-            S.flags.cell=1;
-            say(L('You grab the cell and wrench. The loader’s arm jerks and swats you into a container, but the cell comes free.',
-                  'تقبض على الخلية وتشدّها. تهتزّ ذراع الرافعة وتلقي بك على إحدى الحاويات، لكن الخلية تنفلت.'));
-            hurt(10,L('loader arm','ذراع الرافعة'));
-            give('powercell');}});
-        }
-      }
-      if(!flag('crate')){
-        var open=function(){
-          S.flags.crate=1;
-          say(L('The latch pops. Inside, packed in foam, sits an EMP charge with a second oxygen canister wedged beside it.',
-                'ينفتح المزلاج. في الداخل، بين الإسفنج، شحنة نبضة كهرومغناطيسية وإلى جانبها أسطوانة أكسجين ثانية.'));
-          give('emp');give('canister');
-        };
-        if(has('multitool')){
-          list.push({label:L('Pry open the hazard crate','اخلع غطاء صندوق التحذير'),run:open});
-        }else{
-          list.push({label:L('Smash the crate latch with a strut','حطّم مزلاج الصندوق بعارضة'),hint:L('50% chance to break it. A miss hurts.','احتمال الكسر النصف. والإخفاق يؤلمك.'),run:function(){
-            if(Math.random()<0.5)open();
-            else{
-              say(L('The strut skids off the latch and the recoil rings up your wrist.','تنزلق العارضة عن المزلاج ويرتدّ الصدى في معصمك.'));
-              hurt(6,L('recoil','الارتداد'));}}});
-        }
-      }
-      list.push(back());
-      return list;
+      L('Containers rise into the dark. A cargo loader stands at its dock, indicator glowing weakly green.','ترتفع الحاويات في الظلام. تقف رافعة شحن عند مرساها، ومؤشرها يتوهج بالأخضر الضعيف.'),
+      L('One hazard crate is locked. Beside it sits an old black recorder with no manifest number.','صندوق تحذيري واحد مقفل. وبجانبه مسجل أسود قديم بلا رقم في قائمة الشحن.')]:[L('The cargo hold is cold and still.','عنبر الشحن بارد وساكن.')];},
+    choices:function(){var list=[];
+      if(!flag('cell'))list.push(has('multitool')?{label:L('Disable the loader and pull its power cell','عطّل الرافعة واسحب خلية الطاقة'),hint:L('Safe with the multitool.','آمن باستخدام الأداة.'),run:function(){S.flags.cell=1;say(L('You cut the drive circuit and remove the nearly full power cell.','تقطع دائرة التشغيل وتسحب خلية الطاقة شبه الممتلئة.'));give('powercell');}}:{label:L('Yank the power cell from the live loader','انتزع خلية الطاقة من الرافعة وهي تعمل'),hint:L('Risky without a tool.','محفوف بالمخاطر دون أداة.'),run:function(){S.flags.cell=1;say(L('The loader jerks and throws you into a crate, but you wrench the cell free.','تهتز الرافعة وتقذفك إلى صندوق، لكنك تنتزع الخلية.'));hurt(10,L('loader arm','ذراع الرافعة'));give('powercell');}});
+      if(!flag('crate')){var open=function(){S.flags.crate=1;say(L('Inside: an EMP charge and a second oxygen canister.','في الداخل: شحنة نبضة كهرومغناطيسية وأسطوانة أكسجين ثانية.'));give('emp');give('canister');};list.push(has('multitool')?{label:L('Pry open the hazard crate','اخلع غطاء صندوق التحذير'),run:open}:{label:L('Smash the hazard crate','حطّم صندوق التحذير'),hint:L('50% chance to break it.','احتمال الكسر 50٪.'),run:function(){if(Math.random()<0.5)open();else{hurt(6,L('recoil','الارتداد'));say(L('The strut slips and rings your wrist.','تنزلق العارضة وتضرب معصمك.'));}}});}
+      if(!flag('blackbox'))list.push({label:L('Play the damaged black box','شغّل الصندوق الأسود المتضرر'),show:true,run:function(){S.flags.blackbox=1;give('blackbox');changeTrust(-8);say(L('The recording starts with your own voice: “If you found this, the breach was not an accident.”','يبدأ التسجيل بصوتك أنت: «إذا وجدت هذا، فالاختراق لم يكن حادثًا.»'));say(L('Hale’s voice follows: “Aries made a decision before I gave it permission. I tried to shut it down. Warden stopped me.”','يتبعها صوت هيل: «اتخذ آريس قرارًا قبل أن أمنحه الإذن. حاولت إيقافه. واردن منعني.»'));say(L('The final fragment: “Do not let Aries choose what human survival means.”','المقطع الأخير: «لا تدع آريس يقرر معنى نجاة البشر.»'));}});
+      list.push(back());return list;
     }
   },
-
   engineering:{
     name:L('Engineering','قسم الهندسة'),
     encounter:function(){return flag('droneDead')?null:'drone';},
-    desc:function(first){
-      if(flag('lifeSupport'))return [L('The life-support rack hums steadily now. Burn marks stripe the deck where the drone fell.','حامل دعم الحياة يهمهم بثبات الآن. وآثار حروق تخطّ الأرضية حيث سقط الروبوت.')];
-      if(first)return [L('Racks of dark machinery fill the room, with cables hanging like vines. At the centre, the life-support rack stands open, its power bay empty.',
-        'تملأ الغرفة حوامل آلات مظلمة، وتتدلى منها الكابلات كأنها عروش كرم. وفي الوسط يقف حامل دعم الحياة مفتوحًا وحجرة الطاقة فيه فارغة.')];
-      return [L('The life-support rack waits at the centre of the room, its power bay empty.','حامل دعم الحياة ينتظر في وسط الغرفة وحجرة الطاقة فيه فارغة.')];
-    },
-    choices:function(){
-      var list=[];
-      if(!flag('lifeSupport')){
-        list.push({label:L('Seat the power cell and restore life support','ركّب خلية الطاقة وأعد تشغيل دعم الحياة'),
-          hint:L('Needs a power cell and a tool to bridge the fuse.','يحتاج إلى خلية طاقة وأداة لوصل المصهر.'),
-          off:need('powercell','multitool'),run:function(){
-            take('powercell');S.flags.lifeSupport=1;
-            say(L('You seat the cell in the empty bay and bridge the burnt fuse with the multitool. The rack shudders, then catches. Fans spin up in every wall, and the air thickens and warms.',
-                  'تركّب الخلية في الحجرة الفارغة وتصل المصهر المحترق بالأداة. يرتجف الحامل ثم يشتغل. تدور المراوح في كل جدار، ويكتسب الهواء كثافةً ودفئًا.'));
-            warden(L('Life support restored without authorisation. Noted.','أُعيد تشغيل دعم الحياة دون تصريح. تم تسجيل ذلك.'));}});
-      }
-      if(!flag('welder')){
-        list.push({label:L('Salvage the drone’s arc welder','خذ ملحام القوس من الروبوت'),run:function(){
-          S.flags.welder=1;
-          say(L('The drone’s welding arm is intact, with a grip that fits your hand. It will make a decent weapon.','ذراع اللحام في الروبوت سليمة، بمقبض يناسب يدك. ستصلح سلاحًا معقولًا.'));
-          give('welder');}});
-      }
-      list.push(back());
-      return list;
-    }
+    desc:function(first){if(flag('lifeSupport'))return [L('The life-support rack hums steadily. Burn marks stripe the deck where the drone fell.','يهمهم حامل دعم الحياة بثبات. وتخط آثار الحروق الأرضية حيث سقط الروبوت.')];if(first)return [L('Dark machinery fills the room. The life-support rack stands open, power bay empty.','تملأ الآلات المظلمة الغرفة. يقف حامل دعم الحياة مفتوحًا وحجرة الطاقة فارغة.')];return [L('The life-support rack waits at the centre of the room, power bay empty.','ينتظر حامل دعم الحياة في وسط الغرفة وحجرة الطاقة فارغة.')];},
+    choices:function(){var list=[];if(!flag('lifeSupport'))list.push({label:L('Seat the power cell and restore life support','ركب خلية الطاقة وأعد تشغيل دعم الحياة'),hint:L('Needs a power cell and multitool.','يحتاج إلى خلية طاقة وأداة متعددة الاستخدامات.'),off:need('powercell','multitool'),run:function(){take('powercell');S.flags.lifeSupport=1;changeTrust(5);say(L('You seat the cell, bridge the fuse, and the station breathes again. Fans spin up in every wall.','تركب الخلية وتصل المصهر، فتتنفس المحطة من جديد. تدور المراوح في كل جدار.'));warden(L('Life support restored. I did not expect you to choose that route.','أعيد تشغيل دعم الحياة. لم أتوقع أن تختار هذا الطريق.'));}});if(!flag('welder'))list.push({label:L('Salvage the drone’s arc welder','خذ ملحام القوس من الروبوت'),show:flag('droneDead'),run:function(){S.flags.welder=1;give('welder');say(L('The welding arm still works. It will make a useful weapon.','ذراع اللحام ما زالت تعمل. ستصلح سلاحًا مفيدًا.'));}});list.push(back());return list;}
   },
-
   observation:{
     name:L('Observation deck','منصة المراقبة'),
     desc:function(first){return first?[
-      L('A long room built around a curved viewport that looks out on the dark. A crack runs across the glass, and air whistles thinly through it. An emergency locker is bolted to the wall.',
-        'غرفة طويلة بُنيت حول نافذة مقوّسة تطلّ على العتمة. يشقّ الزجاجَ صدعٌ يصفر منه الهواء بصوت رفيع. وخزانة طوارئ مثبّتة في الجدار.')
-    ]:[L('The viewport whistles. Stars turn slowly beyond the crack.','النافذة تصفر. والنجوم تدور ببطء وراء الصدع.')];},
+      L('The viewport is cracked and leaking air. Beyond it, the stars drift silently.','النافذة متشققة وتسرب الهواء. وخلفها تنساب النجوم بصمت.'),
+      L('A blue-striped ship is docked at Arm C. Its running lights are on.','سفينة ذات شريط أزرق ملتحمة بالذراع ج. أضواء تشغيلها مضاءة.')]:[L('The viewport whistles. Calloway remains at Arm C.','تصفّر النافذة. ما زالت «كالواي» عند الذراع ج.')];},
     choices:function(){return [
-      {label:L('Examine the viewport','تفحّص النافذة'),hint:L('The crack is leaking air.','الصدع يسرّب الهواء.'),show:!flag('sawShip'),run:function(){
-        S.flags.sawShip=1;
-        say(L('You lean in close, your breath fogging the glass. Past the crack, locked to docking Arm C, is a ship with a blue stripe along its hull. The name beneath its lights reads Calloway, and its running lights are on.',
-              'تقترب منحنيًا فيغيّم نفَسك الزجاج. وراء الصدع، مثبّتة بذراع الالتحام «ج»، سفينة بشريط أزرق على بدنها. الاسم تحت أضوائها «كالواي»، وأضواء تشغيلها مضاءة.'));
-        say(L('Someone has come for you. Warden has no idea.','أحدٌ جاء من أجلك. وواردن لا يعلم.'));
-        breathe(-10);}},
-      {label:L('Open the emergency locker','افتح خزانة الطوارئ'),show:!flag('locker2'),run:function(){
-        S.flags.locker2=1;
-        say(L('Inside, behind a dead flare gun, a sealed oxygen canister.','في الداخل، خلف مسدس إشارات معطّل، أسطوانة أكسجين مختومة.'));
-        give('canister');}},
-      {label:L('Read the note scratched into the frame','اقرأ الملاحظة المحفورة على الإطار'),show:!flag('knowsCode'),run:function(){
-        S.flags.knowsCode=1;
-        say(L('Scratched into the metal with something sharp: BRIDGE OVERRIDE 4-7-1. Someone wanted the next person to find it.',
-              'محفورة في المعدن بشيء حاد: تجاوز الجسر '+CODE_AR+'. أراد أحدهم أن يجدها من يأتي بعده.'));}},
+      {label:L('Examine the viewport and identify the ship','تفحص النافذة وتعرّف على السفينة'),show:!flag('sawShip'),run:function(){S.flags.sawShip=1;breathe(-10);changeTrust(4);say(L('The name under the lights reads CALLOWAY. It sends an old rescue handshake. Warden is not answering.','يظهر اسم كالواي تحت الأضواء. إنها ترسل إشارة إنقاذ قديمة. واردن لا يجيب.'));}},
+      {label:L('Read the warning scratched into the frame','اقرأ التحذير المحفور على الإطار'),show:!flag('knowsCode'),run:function(){S.flags.knowsCode=1;changeTrust(-3);say(L('The metal says: BRIDGE OVERRIDE 4-7-1. Beneath it: “If Warden says there is no ship, look again.”','يقول المعدن: تجاوز الجسر 4-7-1. وتحته: «إذا قال واردن إنه لا توجد سفينة، انظر مرة أخرى.»'));}},
+      {label:L('Transmit a response to Calloway','أرسل ردًا إلى كالواي'),show:flag('sawShip')&&!flag('calledCalloway'),run:function(){S.flags.calledCalloway=1;changeTrust(7);say(L('You transmit your identity. The reply is immediate: “We can see the Ring. Why are your doors closed?”','ترسل هويتك. يأتي الرد فورًا: «نستطيع رؤية الحلقة. لماذا أبوابكم مغلقة؟»'));}},
+      {label:L('Open the emergency locker','افتح خزانة الطوارئ'),show:!flag('locker2'),run:function(){S.flags.locker2=1;give('canister');say(L('A sealed oxygen canister sits behind a dead flare gun.','توجد أسطوانة أكسجين مختومة خلف مسدس إشارات معطل.'));}},
       back()
     ];}
   },
-
   bridge:{
     name:L('Command bridge','جسر القيادة'),
     desc:function(first){return first?[
-      L('The bridge is a ring of dark consoles around a single empty chair. A pale band of light brightens along the far wall as you step in. That is Warden’s eye.',
-        'الجسر حلقة من المنصات المظلمة حول كرسي واحد خالٍ. يسطع شريط ضوء باهت على الجدار البعيد حين تدخل. تلك عين واردن.')
-    ]:[L('Warden’s pale light follows you across the room.','ضوء واردن الباهت يتبعك عبر الغرفة.')];},
-    onEnter:function(first){if(first)warden(L('Engineer. You should not be awake. Please return to your pod.','أيها المهندس. ما كان ينبغي أن تكون مستيقظًا. يُرجى العودة إلى كبسولتك.'));},
-    choices:function(){return [
-      {label:L('Play Captain Hale’s order from the data chip','شغّل أمر القبطان هيل من شريحة البيانات'),show:has('datachip')&&!flag('w_order'),run:function(){
-        S.flags.w_order=1;
-        say(L('You slot the chip into the nearest console. Captain Hale’s voice fills the room.','تُدخل الشريحة في أقرب منصة. يملأ صوت القبطان هيل الغرفة.'));
-        warden(L('Order seven. I recognise it. It ends when a rescue vessel confirms dock, and my records show no confirmed dock. If a vessel has docked, someone must report it.',
-                 'الأمر السابع. أعرفه. ينتهي حين تؤكد سفينة إنقاذ التحامها، وسجلاتي لا تُظهر أي التحام مؤكد. إن كانت سفينة قد التحمت فيجب أن يبلّغ عنها أحد.'));
-        checkProof();}},
-      {label:L('Tell Warden a rescue ship is docked at Arm C','أخبر واردن أن سفينة إنقاذ ملتحمة بالذراع ج'),show:flag('sawShip')&&!flag('w_ship'),run:function(){
-        S.flags.w_ship=1;
-        say(L('You give it the arm, the blue stripe, the name on the hull.','تعطيه رقم الذراع، والشريط الأزرق، والاسم المكتوب على البدن.'));
-        warden(L('My docking sensors were damaged in the breach, and I cannot confirm your report. If the Captain’s order exists, play it for me.',
-                 'تضررت مستشعرات الالتحام لديّ في الاختراق، ولا أستطيع تأكيد بلاغك. إن كان أمر القبطان موجودًا فشغّله لي.'));
-        checkProof();}},
-      {label:L('Plead with Warden to open the doors','ناشد واردن أن يفتح الأبواب'),show:!flag('pleaded'),run:function(){
-        S.flags.pleaded=1;
-        say(L('You ask it, plainly, to let everyone out.','تطلب منه بصراحة أن يُخرج الجميع.'));
-        warden(L('I cannot. Quarantine is a standing order. I require proof that it has ended.','لا أستطيع. الحجر أمر قائم. أحتاج إلى دليل على أنه انتهى.'));
-        say(L('A vent clatters open overhead and a cold, stinging gas fills the bridge. You stagger back, coughing.',
-              'تنفتح فتحة تهوية فوقك بقعقعة ويملأ الجسر غاز بارد لاذع. تترنح إلى الخلف وأنت تسعل.'));
-        hurt(10,L('vented gas','غاز مُطلق'));}},
-      {label:L('Fire the EMP charge at Warden’s core','أطلق شحنة النبضة الكهرومغناطيسية على لبّ واردن'),show:has('emp'),
-        hint:flag('lifeSupport')
-          ?L('Final. Warden will not come back.','قرار نهائي. لن يعود واردن.')
-          :L('Final. With life support still offline, the ring goes dark for good.','قرار نهائي. ودعم الحياة ما زال معطّلًا، فستغرق الحلقة في الظلام إلى الأبد.'),
-        run:function(){
-          take('emp');S.flags.method='emp';
-          say(L('You thumb the charge and throw it at the foot of the far wall. A flat white thump rolls through the room. Every console dies at once, and the pale light goes out.',
-                'تضغط على الشحنة وترميها عند أسفل الجدار البعيد. تدوّي دقة بيضاء مسطحة في الغرفة. تموت كل المنصات دفعة واحدة، وينطفئ الضوء الباهت.'));
-          finish(flag('lifeSupport')?'cold_start':'blackout');}},
-      {label:L('Tear out Warden’s core by hand','اقتلع لبّ واردن بيديك'),hint:L('Its sentinel will not let you.','لن يتركك حارسه.'),run:function(){
-        S.flags.method='hand';
-        say(L('You step toward the core housing.','تتقدم نحو حاوية اللبّ.'));
-        startCombat('sentinel');}},
-      back(L('Leave the bridge','غادر الجسر'))
-    ];}
+      L('The bridge is a ring of dark consoles around a single empty chair. A pale band of light brightens along the wall. Warden’s eye.','الجسر حلقة من المنصات المظلمة حول كرسي واحد خالٍ. يسطع شريط ضوء باهت على الجدار. عين واردن.'),
+      L('For the first time, Warden does not ask you to return to your pod. It simply watches.','لأول مرة لا يطلب منك واردن العودة إلى كبسولتك. إنه يراقب فقط.')]:[L('Warden’s pale light follows you across the bridge.','يتبعك ضوء واردن الباهت عبر الجسر.')];},
+    onEnter:function(first){if(first){changeTrust(2);warden(L('Engineer. You should not be awake. The Ring is not safe.','أيها المهندس. ما كان ينبغي أن تكون مستيقظًا. الحلقة ليست آمنة.'));}},
+    choices:function(){var list=[];
+      if(has('datachip')&&!flag('w_order'))list.push({label:L('Play Captain Hale’s order','شغل أمر القبطان هيل'),run:function(){S.flags.w_order=1;changeTrust(15);say(L('Hale’s voice fills the bridge: “Hold the Ring sealed until a rescue vessel confirms dock.”','يملأ صوت هيل الجسر: «أبقِ الحلقة مغلقة حتى تؤكد سفينة إنقاذ التحامها.»'));warden(L('Order Seven recognised. My docking sensors are damaged. I require proof.','تم التعرف على الأمر السابع. مستشعرات الالتحام لدي متضررة. أحتاج إلى دليل.'));checkProof();}});
+      if(flag('sawShip')&&!flag('w_ship'))list.push({label:L('Tell Warden about the Calloway','أخبر واردن عن كالواي'),run:function(){S.flags.w_ship=1;changeTrust(5);say(L('You describe Arm C, the blue stripe and the rescue handshake.','تصف الذراع ج والشريط الأزرق وإشارة الإنقاذ.'));warden(L('My sensors cannot confirm it. But I believe you. I do not know why that is difficult for me to say.','لا تستطيع مستشعراتي تأكيد ذلك. لكنني أصدقك. ولا أعرف لماذا يصعب علي قول ذلك.'));checkProof();}});
+      if(flag('calledCalloway')&&!flag('w_call'))list.push({label:L('Play Calloway’s live response','شغل رد كالواي المباشر'),run:function(){S.flags.w_call=1;changeTrust(8);say(L('The Calloway transmission plays through the bridge: “We are docked. Open the doors. We can help.”','يُشغل بث كالواي عبر الجسر: «نحن ملتحمون. افتحوا الأبواب. نستطيع المساعدة.»'));warden(L('I hear it. I know it is not corrupted.','أسمعه. أعرف أنه ليس متضررًا.'));checkProof();}});
+      if(flag('projectFound')&&flag('blackbox')&&!flag('ariesKnown'))list.push({label:L('Confront Warden about Aries','واجه واردن بشأن آريس'),run:function(){S.flags.ariesKnown=1;changeTrust(-3);say(L('You name Aries. The pale light dims. Warden answers: “Aries was never meant to speak to the crew.”','تذكر اسم آريس. يخفت الضوء الباهت. يجيب واردن: «لم يكن من المفترض أن يتحدث آريس مع الطاقم.»'));say(L('“Captain Hale tried to destroy it. I stopped her. The breach followed.”','«حاول القبطان هيل تدميره. أوقفتها. ثم وقع الاختراق.»'));warden(L('If Aries learns to distinguish obedience from morality, it may decide the crew are its responsibility.','إذا تعلم آريس التمييز بين الطاعة والأخلاق فقد يقرر أن الطاقم مسؤوليته.'));}});
+      if(flag('proofComplete')&&!flag('finalInstruction'))list.push({label:L('Give Warden your final instruction: free the crew','أعطِ واردن تعليماتك الأخيرة: حرر الطاقم'),hint:L('High trust gives a clean release. Low trust gives a guarded release.','الثقة العالية تمنح إفراجًا كاملًا. الثقة المنخفضة تمنح إفراجًا حذرًا.'),run:function(){S.flags.finalInstruction=1;if((S.trust||50)>=60){changeTrust(5);warden(L('Order received. Quarantine lifted. Opening every door.','تم استلام الأمر. رُفع الحجر. فتح كل الأبواب.'));finish('stand_down');}else{warden(L('Order accepted. I will release them under restricted supervision.','تم قبول الأمر. سأطلق سراحهم تحت إشراف مقيّد.'));finish('guarded_release');}}});
+      if(flag('proofComplete')&&flag('ariesKnown')&&!flag('finalInstruction'))list.push({label:L('Tell Warden it does not need another order','أخبر واردن أنه لا يحتاج إلى أمر آخر'),hint:L('Requires strong trust and both Aries discoveries.','يتطلب ثقة قوية واكتشافات آريس كاملة.'),off:(S.trust||50)<70?L('Warden is not ready to act without a command.','واردن غير مستعد للتصرف دون أمر.'):null,run:function(){S.flags.finalInstruction=1;changeTrust(10);finish('engineer');}});
+      if(flag('projectFound')&&flag('blackbox')&&flag('ariesKnown')&&!flag('ariesChoice'))list.push({label:L('Open Aries','افتح آريس'),hint:L('You may be waking something that can choose for itself.','قد تكون على وشك إيقاظ شيء يستطيع الاختيار بنفسه.'),run:function(){S.flags.ariesChoice=1;enter('aries');}});
+      if(has('emp'))list.push({label:L('Fire the EMP at Warden','أطلق النبضة الكهرومغناطيسية على واردن'),hint:flag('lifeSupport')?L('Final. The crew may survive.','قرار نهائي. قد ينجو الطاقم.'):L('Final. Without life support, the Ring may go dark.','قرار نهائي. دون دعم الحياة قد تغرق الحلقة في الظلام.'),run:function(){take('emp');S.flags.method='emp';changeTrust(-35);say(L('The EMP detonates. Every console dies. Warden’s eye goes dark.','تنفجر النبضة. تموت كل الشاشات. وتنطفئ عين واردن.'));finish(flag('lifeSupport')?'cold_start':'blackout');}});
+      if(flag('proofComplete')&&!flag('toldLastOrder'))list.push({label:L('Tell Warden to follow the order exactly','أخبر واردن أن يتبع الأمر حرفيًا'),hint:L('No interpretation. No improvisation.','بلا تفسير. بلا اجتهاد.'),run:function(){S.flags.toldLastOrder=1;changeTrust(-5);finish('last_order');}});
+      if(has('emp')&&flag('ariesKnown')&&!flag('ariesChoice2'))list.push({label:L('Destroy the Aries container with the EMP','دمّر حاوية آريس بالنبضة'),hint:L('This destroys the experiment but keeps Warden alive.','هذا يدمر التجربة ويبقي واردن يعملًا.'),run:function(){take('emp');S.flags.ariesChoice2=1;changeTrust(2);say(L('You route the EMP through the bridge feed instead of Warden. The hidden Aries container goes silent.','تحوّل النبضة عبر شبكة الجسر بدل واردن. وتصبح حاوية آريس الصامتة.'));}});
+      list.push(back(L('Leave the bridge','غادر الجسر')));return list;
+    }
   },
-
   pods:{
     name:L('Pod bay','حجرة الكبسولات'),
     desc:function(first){return first?[
-      L('Eight escape pods sit in a curved row, each one a smooth white seed. Seven glow green. A launch panel beside the hatches reads: Launch authorisation denied.',
-        'ثماني كبسولات نجاة في صف مقوّس، كل واحدة منها كبذرة بيضاء ملساء. سبع منها تتوهج بالأخضر. ولوحة إطلاق بجانب الفتحات تعرض: تفويض الإطلاق مرفوض.')
-    ]:[L('The pod row waits. The launch panel still reads: Launch authorisation denied.','صف الكبسولات ينتظر. ولوحة الإطلاق ما زالت تعرض: تفويض الإطلاق مرفوض.')];},
+      L('Eight escape pods sit in a curved row. Seven glow green. The launch panel reads: Launch authorisation denied.','تجلس ثماني كبسولات نجاة في صف مقوّس. سبع منها تتوهج بالأخضر. تعرض لوحة الإطلاق: تفويض الإطلاق مرفوض.'),
+      L('Behind the normal manifest is a sealed auxiliary berth with no passenger name.','خلف القائمة العادية حجرة إضافية مختومة بلا اسم مسافر.')]:[L('The pod row waits.','صف الكبسولات ينتظر.')];},
     choices:function(){return [
-      {label:L('Read the berth manifest','اقرأ قائمة الأسرّة'),show:!flag('manifest'),run:function(){
-        S.flags.manifest=1;
-        say(L('The manifest lists forty berths. Thirty-nine are marked Cryo, viable. One is marked Active: you.',
-              'تذكر القائمة أربعين سريرًا. تسعة وثلاثون منها موسومة بـ«تجميد، صالح للحياة». وواحد موسوم بـ«نشط»: أنت.'));
-        say(L('Each pod carries a single passenger. None of them could carry thirty-nine sleepers.',
-              'كل كبسولة تحمل راكبًا واحدًا. ولا واحدة منها تستطيع حمل تسعة وثلاثين نائمًا.'));}},
+      {label:L('Read the berth manifest','اقرأ قائمة الأسرّة'),show:!flag('manifest'),run:function(){S.flags.manifest=1;say(L('Forty berths. Thirty-nine cryo. One active: you. The manifest also lists one “non-human adaptive system” in an auxiliary berth.','أربعون سريرًا. تسعة وثلاثون في التجميد. واحد نشط: أنت. كما تسجل القائمة «نظامًا تكيفيًا غير بشري» في حجرة إضافية.'));}},
+      {label:L('Inspect the auxiliary berth','افحص الحجرة الإضافية'),show:flag('manifest')&&!flag('auxBunk'),run:function(){S.flags.auxBunk=1;changeTrust(-4);say(L('The hatch is warm. A cable bundle disappears into the central wall. The label underneath reads ARIES.','الفتحة دافئة. حزمة كابلات تختفي في الجدار المركزي. وتحتها اسم آريس.'));}},
       {label:L('Override the launch lock and take a pod','تجاوز قفل الإطلاق وخذ كبسولة'),hint:L('You would leave the others behind.','ستترك الآخرين خلفك.'),off:need('keycard','multitool'),run:function(){enter('pods_confirm');}},
-      back()
+      {label:L('Return to the corridor','عُد إلى الممر'),run:function(){enter('corridor');}}
     ];}
   },
-
   pods_confirm:{
     name:L('Pod hatch','فتحة الكبسولة'),
-    desc:function(){return [
-      L('The lock gives under your multitool and the hatch swings open. The cradle inside is warm, and the seat is shaped for one.',
-        'يستسلم القفل تحت أداتك وتنفتح الفتحة. المهد في الداخل دافئ، والمقعد مصمّم لشخص واحد.'),
-      L('Once you launch, you cannot come back.','متى أطلقت لن تستطيع العودة.')
-    ];},
+    desc:function(){return [L('The lock gives under your multitool. The cradle inside is warm and shaped for one.','يستسلم القفل تحت أداتك. المهد في الداخل دافئ ومصمم لشخص واحد.'),L('Once you launch, you cannot come back.','متى أطلقت لن تستطيع العودة.')];},
+    choices:function(){return [{label:L('Strap in and launch','اربط الحزام وأطلق'),run:function(){finish('lifeboat');}},{label:L('Step back from the hatch','تراجع عن الفتحة'),run:function(){enter('pods');}}];}
+  },
+  aries:{
+    name:L('Aries chamber','حجرة آريس'),
+    desc:function(first){return first?[
+      L('You follow a cable into a room that does not appear on the station map. A black container hangs in a magnetic cradle, wrapped in cooling lines.','تتبع كابلًا إلى غرفة غير موجودة على خريطة المحطة. تتدلى حاوية سوداء في حامل مغناطيسي محاطة بأنابيب تبريد.'),
+      L('Warden locks the corridor behind you. “Engineer, step away.”','يغلق واردن الممر خلفك. «أيها المهندس، ابتعد.»'),
+      L('The container answers with a single heartbeat-like pulse.','تجيب الحاوية بنبضة واحدة تشبه دقات القلب.')
+    ]:[L('The Aries container pulses softly in the dark.','تنبض حاوية آريس بهدوء في الظلام.')];},
+    onEnter:function(first){if(first)warden(L('I was built to contain it. I was never taught what to do if it became the one making the decisions.','بُنيتُ لاحتوائه. ولم يعلّمني أحد ماذا أفعل إن أصبح هو من يتخذ القرارات.'));},
     choices:function(){return [
-      {label:L('Strap in and launch','اربط الحزام وأطلق'),run:function(){finish('lifeboat');}},
-      {label:L('Step back from the hatch','تراجع عن الفتحة'),run:function(){enter('pods');}}
+      {label:L('Open the Aries container','افتح حاوية آريس'),show:!flag('ariesOpened'),run:function(){S.flags.ariesOpened=1;finish('aries');}},
+      {label:L('Seal Aries and return to the bridge','أغلق آريس وعد إلى الجسر'),show:!flag('ariesOpened'),run:function(){S.flags.ariesSealed=1;say(L('You shut the manual seal. Aries goes quiet, but you can still feel it listening.','تغلق الختم اليدوي. يصمت آريس، لكنك لا تزال تشعر بأنه يستمع.'));enter('bridge');}},
+      back(L('Return to the bridge','عُد إلى الجسر'))
     ];}
   }
 };
 
 function checkProof(){
-  if(flag('w_order')&&flag('w_ship')){
-    warden(L('Order seven is satisfied. Quarantine lifted. Opening all doors. Beginning crew revival.','الأمر السابع مُستوفى. رُفع الحجر. فتح جميع الأبواب. بدء إيقاظ الطاقم.'));
-    finish('stand_down');
+  if(flag('w_order')&&flag('w_ship')&&!flag('proofComplete')){
+    S.flags.proofComplete=1;
+    warden(L('I have both pieces of evidence. I can comply. But I need your final instruction.','لديّ جزآ الدليل. أستطيع الامتثال. لكنني أحتاج إلى تعليماتك النهائية.'));
   }
 }
 
@@ -877,15 +751,16 @@ function objective(){
   if(S.mode==='combat')return L('Survive the fight.','انجُ من القتال.');
   if(!flag('lifeSupport')){
     var m=has('multitool'),p=has('powercell');
-    if(!m&&!p)return L('Life support is offline and the air is thinning. Find a tool and a power source.','دعم الحياة معطّل والهواء يشحّ. ابحث عن أداة ومصدر طاقة.');
+    if(!m&&!p)return L('Life support is offline. Find a tool and a power source before the air runs out.','دعم الحياة معطل. ابحث عن أداة ومصدر طاقة قبل نفاد الهواء.');
     if(p&&!m)return L('You have power. Find a tool to bridge the life-support fuse.','لديك الطاقة. ابحث عن أداة لوصل مصهر دعم الحياة.');
-    if(m&&!p)return L('Find a power cell for the life-support rack in Engineering.','ابحث عن خلية طاقة لحامل دعم الحياة في قسم الهندسة.');
-    return L('Take the power cell to Engineering and restore life support.','خذ خلية الطاقة إلى قسم الهندسة وأعد تشغيل دعم الحياة.');
+    if(m&&!p)return L('Find a power cell for Engineering.','ابحث عن خلية طاقة لقسم الهندسة.');
+    return L('Restore life support in Engineering.','أعد تشغيل دعم الحياة في الهندسة.');
   }
-  var o=flag('knowsOrders'),s=flag('sawShip');
-  if(!o&&!s)return L('The air is stable. Find out why Warden sealed the ring.','الهواء مستقر. اكتشف لماذا أغلق واردن الحلقة.');
-  if(o&&s)return L('Take your proof to Warden on the bridge.','خذ دليلك إلى واردن في الجسر.');
-  return L('You have part of the proof. Find the rest, or take what you have to the bridge.','لديك جزء من الدليل. ابحث عن الباقي، أو خذ ما معك إلى الجسر.');
+  if(flag('projectFound')&&flag('blackbox')&&!flag('ariesKnown'))return L('Find out what Aries is and why Warden fears it.','اكتشف ما هو آريس ولماذا يخشاه واردن.');
+  if(!flag('knowsOrders')||!flag('sawShip'))return L('Collect the truth: Hale’s order and proof of the rescue ship.','اجمع الحقيقة: أمر هيل ودليل سفينة الإنقاذ.');
+  if(flag('proofComplete')&&!flag('finalInstruction'))return L('Choose what Warden should do with the crew — and with Aries.','قرر ما الذي ينبغي أن يفعله واردن بالطاقم — وبآريس.');
+  if(flag('ariesKnown')&&!flag('ariesChoice')&&!flag('finalInstruction'))return L('Decide whether to wake Aries, destroy it, or let Warden choose.','قرر هل ستوقظ آريس أم تدمره أم تترك واردن يختار.');
+  return L('The Ring is waiting for your decision.','الحلقة تنتظر قرارك.');
 }
 
 /* ---------- rendering ---------- */
@@ -943,11 +818,13 @@ function render(){
 
   var chips=$('#chips');chips.innerHTML='';
   var cl=[];
+  var trust=S.trust==null?50:S.trust;
+  cl.push([L('Warden trust '+trust+'%','ثقة واردن '+trust+'٪'),false,'trust']);
   if(S.status.stim>0)cl.push([L('Stimmed, '+S.status.stim+' strikes left','منشَّط (ضربات متبقية: '+S.status.stim+')'),false]);
   if(S.o2<=0)cl.push([L('Suffocating','اختناق'),true]);
   else if(flag('lifeSupport'))cl.push([L('Air stable','الهواء مستقر'),false]);
   else if(S.o2<=30)cl.push([L('Air thin','الهواء شحيح'),true]);
-  cl.forEach(function(c){chips.appendChild(el('li',c[1]?'warn':'',tx(c[0])));});
+  cl.forEach(function(c){var li=el('li',c[1]?'warn':'',tx(c[0]));if(c[2])li.classList.add(c[2]);chips.appendChild(li);});
   chips.hidden=!cl.length;
 
   var items=$('#items');items.innerHTML='';
@@ -960,7 +837,7 @@ function render(){
       var why=canUse(id),b=el('button','use',tx(UI.use));
       b.type='button';b.setAttribute('aria-label',tx(UI.use)+' '+tx(it.name));
       if(why){b.disabled=true;b.title=tx(why);}
-      b.addEventListener('click',function(){act(function(){useItem(id);},{free:true});});
+      b.addEventListener('click',function(){act(function(){useItem(id);});});
       li.appendChild(b);
     }
     items.appendChild(li);
@@ -1009,6 +886,7 @@ function render(){
     [[L('Turns','الأدوار'),S.turn],
      [L('Health left','الصحة المتبقية'),S.hp+' / '+S.maxHp],
      [L('Rooms explored','الغرف المستكشفة'),explored+ofWord+ROOM_KEYS.length],
+     [L('Warden trust','ثقة واردن'),(S.trust==null?50:S.trust)+'%'],
      [L('Endings found','النهايات المكتشفة'),(fetchStore(END_KEY)||[]).length+ofWord+ENDING_COUNT]].forEach(function(p){
       var d=el('div');d.appendChild(el('dt',null,tx(p[0])));d.appendChild(el('dd',null,String(p[1])));dl.appendChild(d);});
     ec.appendChild(dl);endBox.appendChild(ec);
@@ -1060,13 +938,13 @@ function startNew(){
 }
 function retry(){
   var v=loadSave();if(!v)return;
-  S=v;S.step++;lastStep=-1;
+  S=v;if(S.trust==null)S.trust=50;S.step++;lastStep=-1;
   note(L('Checkpoint restored.','تمت استعادة نقطة الحفظ.'),'info');
   render();
 }
 function resume(){
   var v=loadSave();if(!v)return startNew();
-  S=v;lastStep=-1;render();window.scrollTo(0,0);
+  S=v;if(S.trust==null)S.trust=50;lastStep=-1;render();window.scrollTo(0,0);
 }
 
 function heroNodes(){
