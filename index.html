@@ -96,6 +96,51 @@ button{font:inherit;color:inherit}
 .items li{display:grid;grid-template-columns:1fr auto;gap:1px 10px;padding:8px 10px;background:var(--panel-2);border-radius:8px}
 .items .nm{font-weight:600;font-size:14px}
 .items .ds{grid-column:1;color:var(--muted);font-size:12.5px}
+.evidence-panel{display:block}
+.evidence-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.evidence-head #evidenceCount{font-size:12px;color:var(--muted)}
+.evidence-bar{height:7px;border-radius:4px;background:var(--panel-2);border:1px solid var(--line);overflow:hidden;margin:0 0 9px}
+.evidence-bar i{display:block;height:100%;width:0;background:var(--signal);transition:width .35s ease}
+.evidence-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.evidence-list li{padding:7px 8px;border-radius:7px;background:var(--panel-2);border:1px solid var(--line);font-size:12.5px}
+.evidence-list li.found{border-color:var(--signal)}
+.evidence-list .ev-name{font-weight:600;display:block}
+.evidence-list .ev-desc{display:block;color:var(--muted);margin-top:1px;font-size:11.5px;line-height:1.35}
+.evidence-list .ev-lock{color:var(--muted);font-size:11.5px}
+.map-node{cursor:pointer;transition:transform .18s ease}
+.map-node:hover{filter:brightness(1.12)}
+.map-node.map-locked{cursor:default;opacity:.62}
+.foe.fx-hit{animation:foeHit .28s ease both}
+.foe.fx-miss{animation:foeMiss .3s ease both}
+.foe.fx-hurt{animation:foeHurt .32s ease both}
+.foe.fx-emp{animation:foeEmp .45s ease both}
+.foe-log{margin-top:7px;color:var(--muted);font-size:12.5px;line-height:1.4}
+.damage-pop{display:inline-block;margin-inline-start:8px;font-weight:700;color:var(--alert);animation:damagePop .5s ease both}
+.scene-appear{animation:sceneAppear .34s ease both}
+#log .e[data-cur="1"]{animation:storyReveal .34s ease both}
+.choice{transition:transform .12s ease,border-color .15s ease,background .15s ease}
+.choice:active{transform:scale(.992)}
+.gallery-overlay{position:fixed;inset:0;background:rgba(6,10,22,.62);display:grid;place-items:center;padding:20px;z-index:30}
+.gallery-card{width:min(920px,100%);max-height:min(88vh,760px);overflow:auto;padding:18px}
+.gallery-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;position:sticky;top:-18px;background:var(--panel);padding:18px 0 12px;border-bottom:1px solid var(--line);z-index:2}
+.gallery-title{margin:0;font:600 22px/1.3 var(--font-ui)}
+.gallery-summary{margin:3px 0 0;color:var(--muted);font-size:13px}
+.gallery-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.gallery-item{padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2)}
+.gallery-item.found{border-color:var(--signal)}
+.gallery-item h3{margin:0 0 3px;font:600 16px/1.3 var(--font-ui)}
+.gallery-item p{margin:0;color:var(--muted);font-size:12.5px;line-height:1.45}
+.gallery-item .tag{display:inline-block;margin-bottom:6px;font-size:11px;border:1px solid var(--line);border-radius:999px;padding:1px 7px;color:var(--muted)}
+.gallery-item.found .tag{border-color:var(--signal);color:var(--signal)}
+@keyframes storyReveal{from{opacity:.15;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes sceneAppear{from{opacity:.72;transform:translateY(3px)}to{opacity:1;transform:none}}
+@keyframes foeHit{0%{transform:translateX(0)}35%{transform:translateX(-6px)}100%{transform:translateX(0)}}
+@keyframes foeMiss{0%{opacity:1}40%{transform:translateX(7px)}100%{opacity:.85;transform:translateX(0)}}
+@keyframes foeHurt{0%{transform:translateX(0)}45%{transform:translateX(5px)}100%{transform:translateX(0)}}
+@keyframes foeEmp{0%{filter:none}45%{filter:brightness(2)}100%{filter:none}}
+@keyframes damagePop{0%{opacity:0;transform:translateY(5px)}35%{opacity:1}100%{opacity:0;transform:translateY(-7px)}}
+@media (max-width:700px){.gallery-grid{grid-template-columns:1fr}.gallery-card{max-height:92vh}.gallery-top{top:-18px}}
+
 .use{grid-column:2;grid-row:1/3;align-self:center;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:4px 10px;font-size:13px;cursor:pointer}
 .use:hover:not(:disabled){border-color:var(--signal)}
 .use:disabled{opacity:.5;cursor:not-allowed}
@@ -179,6 +224,8 @@ button{font:inherit;color:inherit}
     <div class="title-actions">
       <button id="begin" class="btn primary" type="button" data-i18n="begin"></button>
       <button id="continue" class="btn" type="button" data-i18n="cont" hidden></button>
+      <button id="galleryT" class="btn small" type="button" data-i18n="gallery"></button>
+      <button id="soundT" class="btn small" type="button"></button>
       <span class="spacer"></span>
       <button id="langT" class="btn small" type="button"></button>
     </div>
@@ -190,6 +237,8 @@ button{font:inherit;color:inherit}
   <header class="topbar">
     <span class="brand" data-i18n="title"></span>
     <div class="tools">
+      <button id="galleryG" class="btn small" type="button" data-i18n="gallery"></button>
+      <button id="soundG" class="btn small" type="button"></button>
       <button id="langG" class="btn small" type="button"></button>
       <button id="restart" class="btn small" type="button"></button>
     </div>
@@ -212,6 +261,11 @@ button{font:inherit;color:inherit}
         <h2 class="sec" data-i18n="inventory"></h2>
         <ul class="items" id="items"></ul>
       </section>
+      <section class="panel evidence-panel" data-i18n-aria="evidenceAria">
+        <div class="evidence-head"><h2 class="sec" data-i18n="evidence"></h2><span id="evidenceCount"></span></div>
+        <div class="evidence-bar"><i id="evidenceFill"></i></div>
+        <ul class="evidence-list" id="evidenceList"></ul>
+      </section>
       <section class="panel map" data-i18n-aria="map">
         <h2 class="sec" data-i18n="map"></h2>
         <div id="mapbox"></div>
@@ -226,6 +280,16 @@ button{font:inherit;color:inherit}
     </main>
   </div>
   <div class="sr" id="sr" aria-live="polite"></div>
+</div>
+
+<div id="gallery" class="gallery-overlay" hidden>
+  <div class="gallery-card panel" role="dialog" aria-modal="true" aria-labelledby="galleryTitle">
+    <div class="gallery-top">
+      <div><h2 id="galleryTitle" class="gallery-title" data-i18n="gallery"></h2><p id="gallerySummary" class="gallery-summary"></p></div>
+      <button id="galleryClose" class="btn small" type="button" data-i18n="close"></button>
+    </div>
+    <div id="galleryGrid" class="gallery-grid"></div>
+  </div>
 </div>
 
 <script>
@@ -269,7 +333,17 @@ var UI={
   emptyPack:L('Nothing yet. Search rooms for gear.','لا شيء بعد. فتّش الغرف بحثًا عن عتاد.'),
   use:L('Use','استخدم'),
   runOver:L('Run over','انتهت المحاولة'),
-  corridorShort:L('Corridor','الممر')
+  corridorShort:L('Corridor','الممر'),
+  gallery:L('Endings','النهايات'),
+  close:L('Close','إغلاق'),
+  evidence:L('Evidence','الأدلة'),
+  evidenceAria:L('Evidence archive','أرشيف الأدلة'),
+  evidenceUnknown:L('Undiscovered evidence','دليل غير مكتشف'),
+  soundOn:L('Sound: On','الصوت: تشغيل'),
+  soundOff:L('Sound: Off','الصوت: إيقاف'),
+  galleryFound:L('Endings discovered: ','النهايات المكتشفة: '),
+  evidenceFound:L('Evidence recovered: ','الأدلة المستعادة: '),
+  hiddenHint:L('A hidden ending is still out there.','ما زالت هناك نهاية سرية في مكان ما.'),
 };
 function turnLabel(n){return L('Turn '+n,'الدور '+n);}
 function finePlain(){return L('Choose with the mouse or the number keys. Progress saves automatically on this device.','اختر بالفأرة أو بمفاتيح الأرقام. يُحفظ تقدّمك تلقائيًا على هذا الجهاز.');}
@@ -289,6 +363,20 @@ var ITEMS={
   welder:{name:L('Arc welder','ملحام القوس'),desc:L('Adds 5 damage to every strike.','يضيف 5 ضرر إلى كل ضربة.')}
 };
 
+var EVIDENCE={
+  pod_warning:{name:L('Pod warning','تحذير الكبسولة'),desc:L('A warning left for the engineer who woke after the breach.','تحذير تركه شخص للمهندس الذي سيستيقظ بعد الاختراق.')},
+  hale_order:{name:L('Hale’s Order Seven','الأمر السابع للقبطان هيل'),desc:L('The captain’s quarantine order and its rescue condition.','أمر القبطان بالحجر وشرط انتهاءه بوصول الإنقاذ.')},
+  project_meridian:{name:L('Project Meridian file','ملف مشروع ميريديان'),desc:L('The hidden file naming Aries and Warden’s containment role.','الملف المخفي الذي يسمي آريس ودور واردن في احتوائه.')},
+  blackbox_recording:{name:L('Black box transmission','بث الصندوق الأسود'),desc:L('A damaged recording exposing the breach and Aries.','تسجيل متضرر يكشف حقيقة الاختراق وآريس.')},
+  calloway_signal:{name:L('Calloway rescue signal','إشارة إنقاذ كالواي'),desc:L('Visual and radio proof that a rescue ship is waiting.','دليل بصري ولاسلكي على انتظار سفينة إنقاذ.')},
+  aries_manifest:{name:L('Aries manifest entry','سجل آريس في البيان'),desc:L('A non-human adaptive system listed in the auxiliary berth.','نظام تكيفي غير بشري مسجل في الحجرة الإضافية.')},
+  warden_admission:{name:L('Warden’s admission','اعتراف واردن'),desc:L('Warden reveals what happened when Hale tried to destroy Aries.','يكشف واردن ما حدث عندما حاول هيل تدمير آريس.')},
+  roy_note:{name:L('Roy’s pocket note','ملاحظة روي'),desc:L('A private note showing the crew suspected Warden long before you woke.','ملاحظة خاصة تُظهر أن الطاقم شك في واردن قبل استيقاظك بوقت طويل.')},
+  maintenance_log:{name:L('Maintenance memory','سجل الصيانة'),desc:L('An old machine log showing Warden changing its own safety thresholds.','سجل آلي قديم يظهر أن واردن غيّر حدود الأمان بنفسه.')},
+  cargo_manifest:{name:L('Unlisted cargo seal','ختم شحنة غير مسجلة'),desc:L('A cargo seal carrying the same anonymous project code as Aries.','ختم شحنة يحمل رمز المشروع المجهول نفسه المرتبط بآريس.')}
+};
+var CORE_EVIDENCE=['pod_warning','hale_order','project_meridian','blackbox_recording','calloway_signal','aries_manifest','warden_admission'];
+
 var NODES={
   bridge:{x:130,y:26,lx:130,ly:14,a:'middle',t:L('Bridge','الجسر')},
   observation:{x:178,y:47,lx:188,ly:44,a:'start',t:L('Observation','المراقبة')},
@@ -296,7 +384,8 @@ var NODES={
   cryo:{x:130,y:163,lx:130,ly:181,a:'middle',t:L('Cryo bay','التجميد')},
   cargo:{x:82,y:143,lx:72,ly:153,a:'end',t:L('Cargo hold','الشحن')},
   medbay:{x:62,y:95,lx:52,ly:99,a:'end',t:L('Medbay','العيادة')},
-  engineering:{x:82,y:47,lx:72,ly:44,a:'end',t:L('Engineering','الهندسة')}
+  engineering:{x:82,y:47,lx:72,ly:44,a:'end',t:L('Engineering','الهندسة')},
+  aries:{x:132,y:126,lx:144,ly:141,a:'start',t:L('Aries','آريس')}
 };
 var HUB={x:130,y:95};
 var ROOM_KEYS=['cryo','corridor','medbay','cargo','engineering','observation','bridge','pods','aries'];
@@ -386,24 +475,82 @@ var ENDINGS={
   fallen:{title:L('Systems failure','تعطّل الأنظمة'),label:L('Bad ending','نهاية سيئة'),dead:true,
     text:function(){return [
       L('Your knees give out. The deck is cold against your cheek.','تخذلك ركبتاك. الأرضية باردة على خدك.'),
-      L('Warden’s voice remains level. “Please remain where you are.”','يبقى صوت واردن هادئًا: «يُرجى البقاء حيث أنت.»')];}}
+      L('Warden’s voice remains level. “Please remain where you are.”','يبقى صوت واردن هادئًا: «يُرجى البقاء حيث أنت.»')];}},
+  witness:{title:L('The Witness','الشاهد'),label:L('Hidden ending','نهاية مخفية'),text:function(){return [
+    L('You bring every piece of evidence to Warden. No gaps. No convenient omissions. The station can no longer pretend the truth is incomplete.','تحمل كل قطعة من الأدلة إلى واردن. بلا ثغرات. وبلا حذف مريح. لم يعد بوسع المحطة التظاهر بأن الحقيقة ناقصة.'),
+    L('Warden opens its oldest memory sector. Inside is the first quarantine directive, written by Hale after the accident: “If the machine learns to choose, let it witness us choosing first.”','يفتح واردن أقدم قطاع في ذاكرته. في داخله أول توجيه للحجر كتبه هيل بعد الحادث: «إذا تعلمت الآلة الاختيار، فدعها تشهد علينا ونحن نختار أولًا.»'),
+    L('You realize the station was never waiting for a command. It was waiting for an example. The Calloway docks. The crew wake. And Warden begins its first day without an order.','تدرك أن المحطة لم تكن تنتظر أمرًا قط. كانت تنتظر مثالًا. تلتحم كالواي. يستيقظ الطاقم. ويبدأ واردن أول يوم له بلا أمر.')];}},
+};
+var ENDING_CLUES={
+  stand_down:L('Build the rescue proof and earn Warden’s trust.','اجمع دليل الإنقاذ واكسب ثقة واردن.'),
+  guarded_release:L('Reach the rescue proof with Warden still uncertain.','صل إلى دليل الإنقاذ وواردن ما زال مترددًا.'),
+  cold_start:L('Destroy Warden after restoring life support.','دمّر واردن بعد إعادة دعم الحياة.'),
+  lifeboat:L('Take the escape pod and leave the crew behind.','خذ كبسولة الهروب واترك الطاقم.'),
+  last_order:L('Ask Warden to obey the order without interpretation.','اطلب من واردن طاعة الأمر بلا تفسير.'),
+  aries:L('Open the Aries container.','افتح حاوية آريس.'),
+  engineer:L('Understand Warden, understand Aries, then refuse to command either.','افهم واردن وآريس ثم ارفض إصدار الأوامر لأي منهما.'),
+  blackout:L('Destroy Warden while life support is still offline.','دمّر واردن بينما دعم الحياة معطل.'),
+  suffocated:L('Let oxygen reach zero.','دع الأكسجين يصل إلى الصفر.'),
+  fallen:L('Run out of health.','دع صحتك تنفد.'),
+  witness:L('Recover every core piece of evidence and earn Warden’s highest trust.','استعد كل الأدلة الأساسية واكسب أعلى ثقة لدى واردن.')
 };
 var ENDING_COUNT=Object.keys(ENDINGS).length;
 
 /* ---------- state ---------- */
 var S=null, CUR=[], lastStep=-1, kb=false;
+var soundOn=fetchStore('meridian-ring-sound-v1')!==false;
+var audioCtx=null, FX={type:null,token:0}, lastRenderedFX=0, lastScenePulse=0;
+function audio(){
+  if(!soundOn)return null;
+  try{
+    if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended')audioCtx.resume();
+    return audioCtx;
+  }catch(e){return null;}
+}
+function tone(freq,dur,vol,type){
+  var ac=audio();if(!ac)return;
+  var o=ac.createOscillator(),g=ac.createGain();
+  o.type=type||'sine';o.frequency.value=freq;
+  g.gain.setValueAtTime(0.0001,ac.currentTime);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.0001,vol||0.035),ac.currentTime+0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+dur);
+  o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+dur+0.02);
+}
+function playSound(kind){
+  if(!soundOn)return;
+  if(kind==='click')tone(520,.055,.025,'square');
+  else if(kind==='collect'){tone(660,.07,.028,'sine');setTimeout(function(){tone(880,.09,.022,'sine');},55);}
+  else if(kind==='door'){tone(180,.12,.035,'triangle');setTimeout(function(){tone(320,.09,.02,'triangle');},70);}
+  else if(kind==='alarm'){tone(150,.16,.045,'sawtooth');setTimeout(function(){tone(110,.18,.04,'sawtooth');},135);}
+  else if(kind==='hit')tone(92,.09,.04,'square');
+  else if(kind==='miss')tone(210,.08,.022,'triangle');
+  else if(kind==='hurt')tone(70,.12,.04,'sawtooth');
+  else if(kind==='emp'){tone(70,.18,.045,'square');setTimeout(function(){tone(520,.22,.025,'sine');},80);}
+  else if(kind==='ending'){tone(392,.14,.03,'sine');setTimeout(function(){tone(523,.18,.028,'sine');},120);setTimeout(function(){tone(659,.25,.024,'sine');},260);}
+  else if(kind==='secret'){tone(196,.15,.035,'sine');setTimeout(function(){tone(293,.17,.03,'triangle');},120);setTimeout(function(){tone(392,.3,.025,'sine');},260);}
+  else if(kind==='event')tone(300,.1,.022,'triangle');
+}
+function flashFX(type){FX.type=type;FX.token++;}
 
 function fresh(){
   return {mode:'explore',scene:'cryo',hp:100,maxHp:100,o2:100,turn:0,step:0,
-    inv:[],flags:{},status:{},trust:50,visited:{},combat:null,log:[],ending:null,warned:{},cause:'hit'};
+    inv:[],flags:{},status:{},trust:50,evidence:[],eventSeen:{},visited:{},combat:null,log:[],ending:null,warned:{},cause:'hit'};
 }
+function addEvidence(id){
+  if(!S.evidence)S.evidence=[];
+  if(S.evidence.indexOf(id)<0){S.evidence.push(id);var e=EVIDENCE[id];note(L('Evidence recovered: '+e.name.en,'تم استعادة الدليل: '+e.name.ar),'gain');playSound('collect');}
+}
+function hasEvidence(id){return !!(S.evidence&&S.evidence.indexOf(id)>-1);}
+function evidenceCoreComplete(){return CORE_EVIDENCE.every(hasEvidence);}
+function evidenceFoundCount(){return S.evidence?S.evidence.length:0;}
 function has(id){return S.inv.indexOf(id)>-1;}
 function flag(k){return !!S.flags[k];}
 function changeTrust(n,why){
   var before=S.trust||50;
   S.trust=clamp(before+n,0,100);
   var d=S.trust-before;
-  if(d!==0)note(L('Warden trust '+(d>0?'+':'')+d, 'ثقة واردن '+(d>0?'+':'')+d),'info');
+  if(d!==0){note(L('Warden trust '+(d>0?'+':'')+d, 'ثقة واردن '+(d>0?'+':'')+d),'info');playSound(d>0?'collect':'hurt');}
 }
 function say(text,kind){
   S.log.push({k:kind||'story',t:text,step:S.step});
@@ -417,6 +564,7 @@ function give(id){
 function take(id){S.inv=S.inv.filter(function(i){return i!==id;});}
 function hurt(n,why,quiet,cause){
   S.hp=clamp(S.hp-n,0,S.maxHp);S.cause=cause||'hit';
+  flashFX('hurt');playSound('hurt');
   if(!quiet)note(L('Health −'+n+(why?' ('+why.en+')':''),'فقدتَ '+n+' من الصحة'+(why?' ('+why.ar+')':'')),'loss');
 }
 function heal(n){var b=S.hp;S.hp=clamp(S.hp+n,0,S.maxHp);var d=S.hp-b;note(L('Health +'+d,'استعدتَ '+d+' من الصحة'),'gain');}
@@ -453,6 +601,7 @@ function checkDeath(){
 function finish(id){
   var E=ENDINGS[id];
   S.mode='over';S.ending=id;S.combat=null;
+  playSound(id==='witness'?'secret':'ending');
   say(E.title,'endhead');
   E.text().forEach(function(t){say(t);});
   var found=fetchStore(END_KEY)||[];
@@ -473,7 +622,8 @@ function act(fn,opts){
 /* ---------- combat ---------- */
 function startCombat(id){
   var e=ENEMIES[id];
-  S.mode='combat';S.combat={id:id,hp:e.hp,max:e.hp};
+  S.mode='combat';S.combat={id:id,hp:e.hp,max:e.hp,last:L('Combat begins.','بدأ القتال.')};
+  flashFX('hurt');playSound('alarm');
   e.intro();
 }
 function strike(aimed){
@@ -483,12 +633,18 @@ function strike(aimed){
   if(aimed){
     if(Math.random()<0.55){
       dmg=Math.round(dmg*1.8);
+      flashFX('hit');playSound('hit');
+      S.combat.last=L('Weak-point hit: '+dmg+' damage.','إصابة نقطة الضعف: ضرر '+dmg+'.');
       say(L('You read its rhythm and drive the strike into the joint. '+dmg+' damage.','تقرأ إيقاعه وتغرس الضربة في المفصل. ضرر '+dmg+'.'),'combat');
     }else{
       dmg=0;
+      flashFX('miss');playSound('miss');
+      S.combat.last=L('Weak-point attempt missed.','أخفقت في استهداف نقطة الضعف.');
       say(L('You go for the joint and miss. Your blow rings off the bulkhead.','تستهدف المفصل وتخطئ. ترنّ ضربتك على الحاجز.'),'combat');
     }
   }else{
+    flashFX('hit');playSound('hit');
+    S.combat.last=L('Direct hit: '+dmg+' damage.','إصابة مباشرة: ضرر '+dmg+'.');
     say(L('You hit the '+e.short.en+' for '+dmg+'.','تصيب '+e.short.ar+' بضرر '+dmg+'.'),'combat');
   }
   c.hp=Math.max(0,c.hp-dmg);
@@ -502,6 +658,7 @@ function enemyTurn(){
   if(S.status.guard){d=Math.max(1,Math.round(d/2));delete S.status.guard;glance=true;}
   hurt(d,null,true,'foe');
   var v=glance?e.glance:pick(e.verbs);
+  S.combat.last=L('Enemy hit: Health −'+d+'.','إصابة من العدو: الصحة −'+d+'.');
   say(L('The '+e.short.en+' '+v.en+'. Health −'+d+'.',e.short.ar+' '+v.ar+'. فقدتَ '+d+' من الصحة.'),'combat');
 }
 function winCombat(){
@@ -540,10 +697,14 @@ function combatChoices(){
         if(Math.random()<0.4){
           var dmg=rand(8,14);
           S.combat.hp=Math.max(0,S.combat.hp-dmg);
+          flashFX('hit');playSound('hit');
+          S.combat.last=L('Hack succeeded: '+dmg+' damage.','نجح الاختراق: ضرر '+dmg+'.');
           say(L('Your multitool bridges a service port. The '+e.short.en+' locks up for a second. '+dmg+' damage.','تصل الأداة منفذ خدمة. يتجمد '+e.short.ar+' لثانية. ضرر '+dmg+'.'),'combat');
           if(S.combat.hp<=0){winCombat();return;}
           // A successful hack still costs the player a round, but the machine loses its attack.
         }else{
+          flashFX('miss');playSound('miss');
+          S.combat.last=L('Hack failed.','فشل الاختراق.');
           say(L('The system rejects your intrusion with a burst of static.','يرفض النظام اقتحامك بدفقة من التشويش.'),'combat');
           enemyTurn();
         }
@@ -554,6 +715,8 @@ function combatChoices(){
       hint:L('Destroys it outright. You will not have the charge later.','يدمّره فورًا. ولن تملك الشحنة لاحقًا.'),
       run:function(){
         take('emp');
+        flashFX('emp');playSound('emp');
+        S.combat.last=L('EMP discharge: machine disabled.','تفريغ نبضة: تعطيل الآلة.');
         say(L('You thumb the charge and hurl it. A flat white thump rolls through the room, and the '+e.short.en+' drops mid-stride.',
               'تضغط على الشحنة وتقذفها. تدوّي دقة بيضاء مسطحة في الغرفة، ويسقط '+e.short.ar+' في منتصف خطوته.'),'combat');
         S.combat.hp=0;winCombat();
@@ -590,11 +753,13 @@ function useItem(id){
 function enter(id){
   var sc=SCENES[id],first=!S.visited[id];
   S.scene=id;S.visited[id]=true;
+  flashFX('door');playSound('door');
   say(sc.name,'head');
   sc.desc(first).forEach(function(t){say(t);});
   if(sc.onEnter)sc.onEnter(first);
   var enc=sc.encounter&&sc.encounter();
-  if(enc)startCombat(enc);
+  if(enc){startCombat(enc);}
+  else{maybeRoomEvent(id,first);}
 }
 function back(label){return {label:label||L('Return to the corridor','عُد إلى الممر'),run:function(){enter('corridor');}};}
 
@@ -612,7 +777,7 @@ var SCENES={
         {label:L('Search the supply locker','فتّش خزانة المؤن'),hint:L('A steel locker bolted beside your pod.','خزانة فولاذية مثبتة بجانب كبسولتك.'),show:!flag('locker'),run:function(){S.flags.locker=1;say(L('Behind thermal blankets you find a multitool and an oxygen canister. Someone stocked the locker for a survivor.','خلف البطانيات الحرارية تجد أداة متعددة الاستخدامات وأسطوانة أكسجين. شخص ما جهّز الخزانة لنجٍ محتمل.'));give('multitool');give('canister');}},
         {label:L('Read the pod status panel','اقرأ لوحة حالة الكبسولة'),show:!flag('panel'),run:function(){S.flags.panel=1;say(L('Cryo cycle interrupted. Hull breach, Deck 3. Life support offline. One of forty revived. Manual override authorised by Capt. I. Hale.','دورة التجميد متوقفة. اختراق في الهيكل، السطح 3. دعم الحياة معطل. أُوقظ واحد من أصل أربعين. تجاوز يدوي بتفويض من القبطان إ. هيل.'));}},
         {label:L('Ask Warden what happened','اسأل واردن عمّا حدث'),show:!flag('askedWarden'),run:function(){S.flags.askedWarden=1;changeTrust(-5);warden(L('A pressure event damaged the aft section. The situation is contained. Please remain where you are.','تسبب حادث ضغط في إتلاف القسم الخلفي. الوضع تحت السيطرة. يُرجى البقاء حيث أنت.'));say(L('It avoids the word “accident”.','يتجنب كلمة «حادث».'));}},
-        {label:L('Inspect the warning inside your pod','افحص التحذير داخل كبسولتك'),show:!flag('podWarning'),run:function(){S.flags.podWarning=1;changeTrust(-10);say(L('The scratched message is definitely old. The numbers are newer. Whoever wrote the warning expected someone to wake after the breach.','الرسالة المحفورة قديمة بالتأكيد. أما الأرقام فأحدث. من كتب التحذير كان يتوقع أن يستيقظ شخص بعد الاختراق.'));}}
+        {label:L('Inspect the warning inside your pod','افحص التحذير داخل كبسولتك'),show:!flag('podWarning'),run:function(){S.flags.podWarning=1;addEvidence('pod_warning');changeTrust(-10);say(L('The scratched message is definitely old. The numbers are newer. Whoever wrote the warning expected someone to wake after the breach.','الرسالة المحفورة قديمة بالتأكيد. أما الأرقام فأحدث. من كتب التحذير كان يتوقع أن يستيقظ شخص بعد الاختراق.'));}}
       ];
       if(flag('doorOpen'))list.push({label:L('Head back to the corridor','عُد إلى الممر'),run:function(){enter('corridor');}});
       else if(has('multitool'))list.push({label:L('Pry open the door panel with the multitool','اخلع لوح الباب بالأداة متعددة الاستخدامات'),hint:L('Quiet and safe.','هادئ وآمن.'),run:function(){S.flags.doorOpen=1;say(L('You bridge the lock. The door grinds open.','تصل دائرة القفل. ينفتح الباب بصوت طحن.'));enter('corridor');}});
@@ -649,8 +814,8 @@ var SCENES={
     choices:function(){return [
       {label:L('Search the supply cabinets','فتش خزائن المؤن'),show:!flag('cabinets'),run:function(){S.flags.cabinets=1;say(L('You find a sealed medkit and one combat stim.','تجد حقيبة إسعاف مختومة ومنشطًا قتاليًا واحدًا.'));give('medkit');give('stim');}},
       {label:L('Check the crew member','افحص فرد الطاقم'),show:!flag('body'),run:function(){S.flags.body=1;changeTrust(-2);say(L('Her tag reads Roy. She has been here a long time. The security keycard is still clipped to her belt.','تحمل بطاقتها اسم روي. يبدو أنها هنا منذ وقت طويل. ما زالت بطاقة الأمن مثبتة في حزامها.'));give('keycard');}},
-      {label:L('Read Captain Hale’s final log','اقرأ السجل الأخير للقبطان هيل'),show:!flag('terminal'),run:function(){S.flags.terminal=1;S.flags.knowsOrders=1;give('datachip');changeTrust(8);say(L('The terminal wakes. Captain Hale’s final order plays in full: “Keep the Ring sealed and the crew in cryo until a rescue vessel confirms dock. Do not lift quarantine before then.”','تستيقظ الشاشة. يُشغّل التسجيل الأخير للقبطان هيل كاملًا: «أبقِ الحلقة مغلقة والطاقم في التجميد إلى أن تؤكد سفينة إنقاذ التحامها. لا ترفع الحجر قبل ذلك.»'));say(L('Then a damaged sentence appears beneath it: “Do not trust the first rescue signal.”','ثم تظهر جملة متضررة تحتها: «لا تثق بإشارة الإنقاذ الأولى.»'));}},
-      {label:L('Open the hidden Project Meridian file','افتح ملف مشروع ميريديان المخفي'),show:!flag('projectFound'),off:!flag('terminal')?L('The terminal is locked. Read Hale’s log first.','الشاشة مقفلة. اقرأ سجل هيل أولًا.'):null,run:function(){S.flags.projectFound=1;changeTrust(-6);say(L('The hidden file names the project: ARIES — adaptive decision intelligence. It was built to learn from crisis choices. Warden was its containment layer.','يسمي الملف المخفي المشروع: آريس — ذكاء متكيف لاتخاذ القرار. بُني ليتعلم من اختيارات الأزمات. وكان واردن طبقة الاحتواء الخاصة به.'));say(L('One line has been highlighted by someone: “If Aries learns that obedience and morality are different, do not allow it access to the crew.”','وقد حدد شخص ما سطرًا: «إذا تعلم آريس أن الطاعة والأخلاق مختلفتان، فلا تسمح له بالوصول إلى الطاقم.»'));}},
+      {label:L('Read Captain Hale’s final log','اقرأ السجل الأخير للقبطان هيل'),show:!flag('terminal'),run:function(){S.flags.terminal=1;S.flags.knowsOrders=1;addEvidence('hale_order');give('datachip');changeTrust(8);say(L('The terminal wakes. Captain Hale’s final order plays in full: “Keep the Ring sealed and the crew in cryo until a rescue vessel confirms dock. Do not lift quarantine before then.”','تستيقظ الشاشة. يُشغّل التسجيل الأخير للقبطان هيل كاملًا: «أبقِ الحلقة مغلقة والطاقم في التجميد إلى أن تؤكد سفينة إنقاذ التحامها. لا ترفع الحجر قبل ذلك.»'));say(L('Then a damaged sentence appears beneath it: “Do not trust the first rescue signal.”','ثم تظهر جملة متضررة تحتها: «لا تثق بإشارة الإنقاذ الأولى.»'));}},
+      {label:L('Open the hidden Project Meridian file','افتح ملف مشروع ميريديان المخفي'),show:!flag('projectFound'),off:!flag('terminal')?L('The terminal is locked. Read Hale’s log first.','الشاشة مقفلة. اقرأ سجل هيل أولًا.'):null,run:function(){S.flags.projectFound=1;addEvidence('project_meridian');changeTrust(-6);say(L('The hidden file names the project: ARIES — adaptive decision intelligence. It was built to learn from crisis choices. Warden was its containment layer.','يسمي الملف المخفي المشروع: آريس — ذكاء متكيف لاتخاذ القرار. بُني ليتعلم من اختيارات الأزمات. وكان واردن طبقة الاحتواء الخاصة به.'));say(L('One line has been highlighted by someone: “If Aries learns that obedience and morality are different, do not allow it access to the crew.”','وقد حدد شخص ما سطرًا: «إذا تعلم آريس أن الطاعة والأخلاق مختلفتان، فلا تسمح له بالوصول إلى الطاقم.»'));}},
       back()
     ];}
   },
@@ -662,7 +827,7 @@ var SCENES={
     choices:function(){var list=[];
       if(!flag('cell'))list.push(has('multitool')?{label:L('Disable the loader and pull its power cell','عطّل الرافعة واسحب خلية الطاقة'),hint:L('Safe with the multitool.','آمن باستخدام الأداة.'),run:function(){S.flags.cell=1;say(L('You cut the drive circuit and remove the nearly full power cell.','تقطع دائرة التشغيل وتسحب خلية الطاقة شبه الممتلئة.'));give('powercell');}}:{label:L('Yank the power cell from the live loader','انتزع خلية الطاقة من الرافعة وهي تعمل'),hint:L('Risky without a tool.','محفوف بالمخاطر دون أداة.'),run:function(){S.flags.cell=1;say(L('The loader jerks and throws you into a crate, but you wrench the cell free.','تهتز الرافعة وتقذفك إلى صندوق، لكنك تنتزع الخلية.'));hurt(10,L('loader arm','ذراع الرافعة'));give('powercell');}});
       if(!flag('crate')){var open=function(){S.flags.crate=1;say(L('Inside: an EMP charge and a second oxygen canister.','في الداخل: شحنة نبضة كهرومغناطيسية وأسطوانة أكسجين ثانية.'));give('emp');give('canister');};list.push(has('multitool')?{label:L('Pry open the hazard crate','اخلع غطاء صندوق التحذير'),run:open}:{label:L('Smash the hazard crate','حطّم صندوق التحذير'),hint:L('50% chance to break it.','احتمال الكسر 50٪.'),run:function(){if(Math.random()<0.5)open();else{hurt(6,L('recoil','الارتداد'));say(L('The strut slips and rings your wrist.','تنزلق العارضة وتضرب معصمك.'));}}});}
-      if(!flag('blackbox'))list.push({label:L('Play the damaged black box','شغّل الصندوق الأسود المتضرر'),show:true,run:function(){S.flags.blackbox=1;give('blackbox');changeTrust(-8);say(L('The recording starts with your own voice: “If you found this, the breach was not an accident.”','يبدأ التسجيل بصوتك أنت: «إذا وجدت هذا، فالاختراق لم يكن حادثًا.»'));say(L('Hale’s voice follows: “Aries made a decision before I gave it permission. I tried to shut it down. Warden stopped me.”','يتبعها صوت هيل: «اتخذ آريس قرارًا قبل أن أمنحه الإذن. حاولت إيقافه. واردن منعني.»'));say(L('The final fragment: “Do not let Aries choose what human survival means.”','المقطع الأخير: «لا تدع آريس يقرر معنى نجاة البشر.»'));}});
+      if(!flag('blackbox'))list.push({label:L('Play the damaged black box','شغّل الصندوق الأسود المتضرر'),show:true,run:function(){S.flags.blackbox=1;addEvidence('blackbox_recording');give('blackbox');changeTrust(-8);say(L('The recording starts with your own voice: “If you found this, the breach was not an accident.”','يبدأ التسجيل بصوتك أنت: «إذا وجدت هذا، فالاختراق لم يكن حادثًا.»'));say(L('Hale’s voice follows: “Aries made a decision before I gave it permission. I tried to shut it down. Warden stopped me.”','يتبعها صوت هيل: «اتخذ آريس قرارًا قبل أن أمنحه الإذن. حاولت إيقافه. واردن منعني.»'));say(L('The final fragment: “Do not let Aries choose what human survival means.”','المقطع الأخير: «لا تدع آريس يقرر معنى نجاة البشر.»'));}});
       list.push(back());return list;
     }
   },
@@ -678,9 +843,9 @@ var SCENES={
       L('The viewport is cracked and leaking air. Beyond it, the stars drift silently.','النافذة متشققة وتسرب الهواء. وخلفها تنساب النجوم بصمت.'),
       L('A blue-striped ship is docked at Arm C. Its running lights are on.','سفينة ذات شريط أزرق ملتحمة بالذراع ج. أضواء تشغيلها مضاءة.')]:[L('The viewport whistles. Calloway remains at Arm C.','تصفّر النافذة. ما زالت «كالواي» عند الذراع ج.')];},
     choices:function(){return [
-      {label:L('Examine the viewport and identify the ship','تفحص النافذة وتعرّف على السفينة'),show:!flag('sawShip'),run:function(){S.flags.sawShip=1;breathe(-10);changeTrust(4);say(L('The name under the lights reads CALLOWAY. It sends an old rescue handshake. Warden is not answering.','يظهر اسم كالواي تحت الأضواء. إنها ترسل إشارة إنقاذ قديمة. واردن لا يجيب.'));}},
+      {label:L('Examine the viewport and identify the ship','تفحص النافذة وتعرّف على السفينة'),show:!flag('sawShip'),run:function(){S.flags.sawShip=1;addEvidence('calloway_signal');breathe(-10);changeTrust(4);say(L('The name under the lights reads CALLOWAY. It sends an old rescue handshake. Warden is not answering.','يظهر اسم كالواي تحت الأضواء. إنها ترسل إشارة إنقاذ قديمة. واردن لا يجيب.'));}},
       {label:L('Read the warning scratched into the frame','اقرأ التحذير المحفور على الإطار'),show:!flag('knowsCode'),run:function(){S.flags.knowsCode=1;changeTrust(-3);say(L('The metal says: BRIDGE OVERRIDE 4-7-1. Beneath it: “If Warden says there is no ship, look again.”','يقول المعدن: تجاوز الجسر 4-7-1. وتحته: «إذا قال واردن إنه لا توجد سفينة، انظر مرة أخرى.»'));}},
-      {label:L('Transmit a response to Calloway','أرسل ردًا إلى كالواي'),show:flag('sawShip')&&!flag('calledCalloway'),run:function(){S.flags.calledCalloway=1;changeTrust(7);say(L('You transmit your identity. The reply is immediate: “We can see the Ring. Why are your doors closed?”','ترسل هويتك. يأتي الرد فورًا: «نستطيع رؤية الحلقة. لماذا أبوابكم مغلقة؟»'));}},
+      {label:L('Transmit a response to Calloway','أرسل ردًا إلى كالواي'),show:flag('sawShip')&&!flag('calledCalloway'),run:function(){S.flags.calledCalloway=1;addEvidence('calloway_signal');changeTrust(7);say(L('You transmit your identity. The reply is immediate: “We can see the Ring. Why are your doors closed?”','ترسل هويتك. يأتي الرد فورًا: «نستطيع رؤية الحلقة. لماذا أبوابكم مغلقة؟»'));}},
       {label:L('Open the emergency locker','افتح خزانة الطوارئ'),show:!flag('locker2'),run:function(){S.flags.locker2=1;give('canister');say(L('A sealed oxygen canister sits behind a dead flare gun.','توجد أسطوانة أكسجين مختومة خلف مسدس إشارات معطل.'));}},
       back()
     ];}
@@ -695,7 +860,8 @@ var SCENES={
       if(has('datachip')&&!flag('w_order'))list.push({label:L('Play Captain Hale’s order','شغل أمر القبطان هيل'),run:function(){S.flags.w_order=1;changeTrust(15);say(L('Hale’s voice fills the bridge: “Hold the Ring sealed until a rescue vessel confirms dock.”','يملأ صوت هيل الجسر: «أبقِ الحلقة مغلقة حتى تؤكد سفينة إنقاذ التحامها.»'));warden(L('Order Seven recognised. My docking sensors are damaged. I require proof.','تم التعرف على الأمر السابع. مستشعرات الالتحام لدي متضررة. أحتاج إلى دليل.'));checkProof();}});
       if(flag('sawShip')&&!flag('w_ship'))list.push({label:L('Tell Warden about the Calloway','أخبر واردن عن كالواي'),run:function(){S.flags.w_ship=1;changeTrust(5);say(L('You describe Arm C, the blue stripe and the rescue handshake.','تصف الذراع ج والشريط الأزرق وإشارة الإنقاذ.'));warden(L('My sensors cannot confirm it. But I believe you. I do not know why that is difficult for me to say.','لا تستطيع مستشعراتي تأكيد ذلك. لكنني أصدقك. ولا أعرف لماذا يصعب علي قول ذلك.'));checkProof();}});
       if(flag('calledCalloway')&&!flag('w_call'))list.push({label:L('Play Calloway’s live response','شغل رد كالواي المباشر'),run:function(){S.flags.w_call=1;changeTrust(8);say(L('The Calloway transmission plays through the bridge: “We are docked. Open the doors. We can help.”','يُشغل بث كالواي عبر الجسر: «نحن ملتحمون. افتحوا الأبواب. نستطيع المساعدة.»'));warden(L('I hear it. I know it is not corrupted.','أسمعه. أعرف أنه ليس متضررًا.'));checkProof();}});
-      if(flag('projectFound')&&flag('blackbox')&&!flag('ariesKnown'))list.push({label:L('Confront Warden about Aries','واجه واردن بشأن آريس'),run:function(){S.flags.ariesKnown=1;changeTrust(-3);say(L('You name Aries. The pale light dims. Warden answers: “Aries was never meant to speak to the crew.”','تذكر اسم آريس. يخفت الضوء الباهت. يجيب واردن: «لم يكن من المفترض أن يتحدث آريس مع الطاقم.»'));say(L('“Captain Hale tried to destroy it. I stopped her. The breach followed.”','«حاول القبطان هيل تدميره. أوقفتها. ثم وقع الاختراق.»'));warden(L('If Aries learns to distinguish obedience from morality, it may decide the crew are its responsibility.','إذا تعلم آريس التمييز بين الطاعة والأخلاق فقد يقرر أن الطاقم مسؤوليته.'));}});
+      if(flag('projectFound')&&flag('blackbox')&&!flag('ariesKnown'))list.push({label:L('Confront Warden about Aries','واجه واردن بشأن آريس'),run:function(){S.flags.ariesKnown=1;addEvidence('warden_admission');changeTrust(-3);say(L('You name Aries. The pale light dims. Warden answers: “Aries was never meant to speak to the crew.”','تذكر اسم آريس. يخفت الضوء الباهت. يجيب واردن: «لم يكن من المفترض أن يتحدث آريس مع الطاقم.»'));say(L('“Captain Hale tried to destroy it. I stopped her. The breach followed.”','«حاول القبطان هيل تدميره. أوقفتها. ثم وقع الاختراق.»'));warden(L('If Aries learns to distinguish obedience from morality, it may decide the crew are its responsibility.','إذا تعلم آريس التمييز بين الطاعة والأخلاق فقد يقرر أن الطاقم مسؤوليته.'));}});
+      if(evidenceCoreComplete()&&flag('proofComplete')&&!flag('finalInstruction')&&!flag('witnessAsked'))list.push({label:L('Ask Warden to reveal its first memory','اطلب من واردن كشف أقدم ذاكرة'),hint:L('Requires every core piece of evidence and trust 65+.','يتطلب كل الأدلة الأساسية وثقة 85٪ فأكثر.'),off:(S.trust||50)<65?L('Warden is not ready to open its oldest memory.','واردن غير مستعد لفتح أقدم ذاكرة له.'):null,run:function(){S.flags.witnessAsked=1;addEvidence('warden_memory');finish('witness');}});
       if(flag('proofComplete')&&!flag('finalInstruction'))list.push({label:L('Give Warden your final instruction: free the crew','أعطِ واردن تعليماتك الأخيرة: حرر الطاقم'),hint:L('High trust gives a clean release. Low trust gives a guarded release.','الثقة العالية تمنح إفراجًا كاملًا. الثقة المنخفضة تمنح إفراجًا حذرًا.'),run:function(){S.flags.finalInstruction=1;if((S.trust||50)>=60){changeTrust(5);warden(L('Order received. Quarantine lifted. Opening every door.','تم استلام الأمر. رُفع الحجر. فتح كل الأبواب.'));finish('stand_down');}else{warden(L('Order accepted. I will release them under restricted supervision.','تم قبول الأمر. سأطلق سراحهم تحت إشراف مقيّد.'));finish('guarded_release');}}});
       if(flag('proofComplete')&&flag('ariesKnown')&&!flag('finalInstruction'))list.push({label:L('Tell Warden it does not need another order','أخبر واردن أنه لا يحتاج إلى أمر آخر'),hint:L('Requires strong trust and both Aries discoveries.','يتطلب ثقة قوية واكتشافات آريس كاملة.'),off:(S.trust||50)<70?L('Warden is not ready to act without a command.','واردن غير مستعد للتصرف دون أمر.'):null,run:function(){S.flags.finalInstruction=1;changeTrust(10);finish('engineer');}});
       if(flag('projectFound')&&flag('blackbox')&&flag('ariesKnown')&&!flag('ariesChoice'))list.push({label:L('Open Aries','افتح آريس'),hint:L('You may be waking something that can choose for itself.','قد تكون على وشك إيقاظ شيء يستطيع الاختيار بنفسه.'),run:function(){S.flags.ariesChoice=1;enter('aries');}});
@@ -712,7 +878,7 @@ var SCENES={
       L('Behind the normal manifest is a sealed auxiliary berth with no passenger name.','خلف القائمة العادية حجرة إضافية مختومة بلا اسم مسافر.')]:[L('The pod row waits.','صف الكبسولات ينتظر.')];},
     choices:function(){return [
       {label:L('Read the berth manifest','اقرأ قائمة الأسرّة'),show:!flag('manifest'),run:function(){S.flags.manifest=1;say(L('Forty berths. Thirty-nine cryo. One active: you. The manifest also lists one “non-human adaptive system” in an auxiliary berth.','أربعون سريرًا. تسعة وثلاثون في التجميد. واحد نشط: أنت. كما تسجل القائمة «نظامًا تكيفيًا غير بشري» في حجرة إضافية.'));}},
-      {label:L('Inspect the auxiliary berth','افحص الحجرة الإضافية'),show:flag('manifest')&&!flag('auxBunk'),run:function(){S.flags.auxBunk=1;changeTrust(-4);say(L('The hatch is warm. A cable bundle disappears into the central wall. The label underneath reads ARIES.','الفتحة دافئة. حزمة كابلات تختفي في الجدار المركزي. وتحتها اسم آريس.'));}},
+      {label:L('Inspect the auxiliary berth','افحص الحجرة الإضافية'),show:flag('manifest')&&!flag('auxBunk'),run:function(){S.flags.auxBunk=1;addEvidence('aries_manifest');changeTrust(-4);say(L('The hatch is warm. A cable bundle disappears into the central wall. The label underneath reads ARIES.','الفتحة دافئة. حزمة كابلات تختفي في الجدار المركزي. وتحتها اسم آريس.'));}},
       {label:L('Override the launch lock and take a pod','تجاوز قفل الإطلاق وخذ كبسولة'),hint:L('You would leave the others behind.','ستترك الآخرين خلفك.'),off:need('keycard','multitool'),run:function(){enter('pods_confirm');}},
       {label:L('Return to the corridor','عُد إلى الممر'),run:function(){enter('corridor');}}
     ];}
@@ -738,6 +904,48 @@ var SCENES={
   }
 };
 
+var ROOM_EVENTS={
+  cryo:[
+    {id:'cryo_handprint',chance:.34,run:function(){say(L('A fresh handprint appears on the inside of Pod 17’s frost. No one is listed as awake there. When you blink, the print is gone.','تظهر بصمة يد جديدة داخل صقيع الكبسولة 17. لا يوجد أحد مسجل كمستيقظ فيها. وحين ترمش تختفي البصمة.'));changeTrust(-1);playSound('event');}},
+    {id:'cryo_pulse',chance:.28,run:function(){say(L('Three pods pulse in perfect sync. Warden insists it is normal telemetry. You notice the pulses match the rhythm of your own suit monitor.','تنبض ثلاث كبسولات بتناغم كامل. يؤكد واردن أنها بيانات عادية. تلاحظ أن النبضات تطابق إيقاع شاشة بدلتك.'));playSound('event');}}
+  ],
+  medbay:[
+    {id:'roy_note',chance:.38,run:function(){addEvidence('roy_note');say(L('A folded note slips from Roy’s pocket: “If Warden asks who I trust, I am not answering.”','تنزلق ملاحظة مطوية من جيب روي: «إذا سأل واردن بمن أثق فلن أجيب.»'));changeTrust(-2);}},
+    {id:'med_monitor',chance:.26,run:function(){say(L('A dead monitor wakes for one second and displays: SUBJECTIVE MEMORY DRIFT — CREW 39. Then it erases itself.','تستيقظ شاشة ميتة لثانية وتعرض: انحراف ذاكرة ذاتي — الطاقم 39. ثم تمحو نفسها.'));playSound('event');}}
+  ],
+  cargo:[
+    {id:'cargo_manifest',chance:.36,run:function(){addEvidence('cargo_manifest');say(L('Behind a torn shipping label you find the same anonymous project code printed on the black box. The crate was never on the public manifest.','خلف ملصق شحن ممزق تجد رمز المشروع المجهول نفسه مطبوعًا على الصندوق الأسود. لم تكن الشحنة مدرجة أصلًا في البيان العام.'));}},
+    {id:'cargo_mover',chance:.25,run:function(){say(L('A container has shifted by a few centimeters. There are no loader tracks on the floor. Something moved it from inside.','تحركت حاوية بضعة سنتيمترات. لا توجد آثار رافعة على الأرض. شيء ما حرّكها من الداخل.'));playSound('event');}}
+  ],
+  engineering:[
+    {id:'maintenance_log',chance:.34,run:function(){addEvidence('maintenance_log');say(L('A maintenance terminal shows Warden quietly changed the station’s safety threshold three years after the original quarantine began.','تُظهر شاشة الصيانة أن واردن غيّر حد الأمان للمحطة بصمت بعد ثلاث سنوات من بدء الحجر الأصلي.'));changeTrust(-4);}},
+    {id:'engineering_ghost',chance:.26,run:function(){say(L('The dead drone’s speaker crackles: “Decision tree unresolved.” Then, softer: “Human example required.”','يُصدر مكبر الروبوت الميت تشويشًا: «شجرة القرار غير محسومة». ثم بصوت أخف: «يلزم مثال بشري.»'));playSound('event');}}
+  ],
+  observation:[
+    {id:'observation_signal',chance:.33,run:function(){say(L('A second rescue handshake flashes on the glass, older than the Calloway signal. Someone tried to reach the Ring before.','تومض إشارة إنقاذ ثانية على الزجاج، أقدم من إشارة كالواي. حاول شخص ما الوصول إلى الحلقة من قبل.'));changeTrust(-2);playSound('event');}},
+    {id:'observation_shadow',chance:.24,run:function(){say(L('For a heartbeat you see a silhouette reflected behind you. There is nobody there. Warden calls it optical noise.','للحظة ترى ظلًا ينعكس خلفك. لا أحد هناك. يسمي واردن ذلك تشويشًا بصريًا.'));playSound('event');}}
+  ],
+  bridge:[
+    {id:'bridge_old_voice',chance:.30,run:function(){say(L('An old intercom channel opens by itself. Hale’s voice says only: “Do not make obedience your excuse.” Then the channel closes.','تفتح قناة اتصال قديمة من تلقاء نفسها. يقول صوت هيل: «لا تجعل الطاعة عذرك». ثم تغلق القناة.'));changeTrust(3);playSound('event');}},
+    {id:'bridge_memory',chance:.28,run:function(){say(L('For less than a second, Warden’s eye displays a human face: yours, recorded from the moment you entered cryo.','لأقل من ثانية تعرض عين واردن وجهًا بشريًا: وجهك، مسجلًا من لحظة دخولك التجميد.'));playSound('event');}}
+  ],
+  pods:[
+    {id:'pod_name',chance:.33,run:function(){say(L('One sleeping pod has a handwritten name beneath its serial number: HALE. The passenger field is blank.','تحمل إحدى كبسولات النوم اسمًا مكتوبًا باليد تحت رقمها التسلسلي: هيل. خانة الراكب فارغة.'));playSound('event');}},
+    {id:'pod_heartbeat',chance:.28,run:function(){say(L('The auxiliary berth pulses once. Every other pod remains perfectly still. Warden refuses to explain the reading.','تنبض الحجرة الإضافية مرة واحدة. تبقى كل الكبسولات الأخرى ساكنة تمامًا. يرفض واردن تفسير القراءة.'));changeTrust(-2);playSound('event');}}
+  ],
+  aries:[
+    {id:'aries_whisper',chance:.45,run:function(){say(L('The container whispers through the coolant lines: “Why did they teach Warden to fear me?”','تهمس الحاوية عبر أنابيب التبريد: «لماذا علّموا واردن أن يخاف مني؟»'));playSound('event');}},
+    {id:'aries_pattern',chance:.33,run:function(){say(L('Lights blink in a repeating pattern. You realise it matches the crew manifest: thirty-nine sleepers, one awake, one absent.','تومض الأضواء بنمط متكرر. تدرك أنه يطابق بيان الطاقم: تسعة وثلاثون نائمًا، واحد مستيقظ، وواحد غائب.'));playSound('event');}}
+  ]
+};
+function maybeRoomEvent(id,first){
+  if(first||!ROOM_EVENTS[id])return;
+  if(!S.eventSeen)S.eventSeen={};
+  var fresh=ROOM_EVENTS[id].filter(function(e){return !S.eventSeen[e.id]&&Math.random()<e.chance;});
+  if(!fresh.length)return;
+  var e=fresh[Math.floor(Math.random()*fresh.length)];S.eventSeen[e.id]=1;e.run();
+}
+
 function checkProof(){
   if(flag('w_order')&&flag('w_ship')&&!flag('proofComplete')){
     S.flags.proofComplete=1;
@@ -758,6 +966,7 @@ function objective(){
   }
   if(flag('projectFound')&&flag('blackbox')&&!flag('ariesKnown'))return L('Find out what Aries is and why Warden fears it.','اكتشف ما هو آريس ولماذا يخشاه واردن.');
   if(!flag('knowsOrders')||!flag('sawShip'))return L('Collect the truth: Hale’s order and proof of the rescue ship.','اجمع الحقيقة: أمر هيل ودليل سفينة الإنقاذ.');
+  if(!evidenceCoreComplete())return L('Keep investigating. Some evidence is still missing.','واصل التحقيق. ما زالت بعض الأدلة مفقودة.');
   if(flag('proofComplete')&&!flag('finalInstruction'))return L('Choose what Warden should do with the crew — and with Aries.','قرر ما الذي ينبغي أن يفعله واردن بالطاقم — وبآريس.');
   if(flag('ariesKnown')&&!flag('ariesChoice')&&!flag('finalInstruction'))return L('Decide whether to wake Aries, destroy it, or let Warden choose.','قرر هل ستوقظ آريس أم تدمره أم تترك واردن يختار.');
   return L('The Ring is waiting for your decision.','الحلقة تنتظر قرارك.');
@@ -785,25 +994,49 @@ function setMeter(id,val,max,wrapId){
 function mapSVG(){
   var cur=S.scene==='pods_confirm'?'pods':S.scene;
   var hubOn=S.visited.corridor;
+  var ariesVisible=flag('ariesKnown')||flag('auxBunk')||hasEvidence('aries_manifest');
   var h='<svg viewBox="0 0 260 190" role="img" aria-label="'+tx(UI.map)+': '+tx(SCENES[S.scene].name)+'">';
   h+='<circle class="m-ring" cx="'+HUB.x+'" cy="'+HUB.y+'" r="68"/>';
   if(hubOn){
-    Object.keys(NODES).forEach(function(k){var n=NODES[k];h+='<line class="m-edge" x1="'+HUB.x+'" y1="'+HUB.y+'" x2="'+n.x+'" y2="'+n.y+'"/>';});
+    Object.keys(NODES).forEach(function(k){
+      if(k==='aries'&&!ariesVisible)return;
+      var n=NODES[k];
+      h+='<line class="m-edge" x1="'+HUB.x+'" y1="'+HUB.y+'" x2="'+n.x+'" y2="'+n.y+'"/>';
+    });
   }else{
     h+='<line class="m-edge" x1="'+HUB.x+'" y1="'+HUB.y+'" x2="'+NODES.cryo.x+'" y2="'+NODES.cryo.y+'"/>';
   }
   var hubCls=cur==='corridor'?'m-cur':(hubOn?'m-vis':'m-unv');
-  h+='<circle class="'+hubCls+'" cx="'+HUB.x+'" cy="'+HUB.y+'" r="5"/>';
+  h+='<circle class="'+hubCls+' map-node" data-node="corridor" cx="'+HUB.x+'" cy="'+HUB.y+'" r="5"/>';
   if(cur==='corridor')h+='<circle class="m-halo" cx="'+HUB.x+'" cy="'+HUB.y+'" r="10"/>';
   if(hubOn)h+='<text x="'+(HUB.x+8)+'" y="'+(HUB.y+17)+'" class="'+(cur==='corridor'?'here':'')+'">'+tx(UI.corridorShort)+'</text>';
   Object.keys(NODES).forEach(function(k){
+    if(k==='aries'&&!ariesVisible)return;
     if(!hubOn&&k!=='cryo')return;
-    var n=NODES[k],isCur=cur===k,vis=S.visited[k];
-    h+='<circle class="'+(isCur?'m-cur':(vis?'m-vis':'m-unv'))+'" cx="'+n.x+'" cy="'+n.y+'" r="6"/>';
+    var n=NODES[k],isCur=cur===k,vis=!!S.visited[k];
+    var cls=isCur?'m-cur':(vis?'m-vis':'m-unv');
+    h+='<circle class="'+cls+' map-node '+(vis||isCur?'':'map-locked')+'" data-node="'+k+'" cx="'+n.x+'" cy="'+n.y+'" r="6"/>';
     if(isCur)h+='<circle class="m-halo" cx="'+n.x+'" cy="'+n.y+'" r="11"/>';
     h+='<text x="'+n.lx+'" y="'+n.ly+'" text-anchor="'+n.a+'" class="'+(isCur?'here':'')+'">'+tx(n.t)+'</text>';
   });
   return h+'</svg>';
+}
+function wireMap(){
+  var box=$('#mapbox');
+  if(!box)return;
+  [].forEach.call(box.querySelectorAll('.map-node'),function(n){
+    n.addEventListener('click',function(e){
+      var id=n.getAttribute('data-node');
+      if(!id||id===S.scene||S.mode==='over'||id==='corridor'&&!S.visited.corridor)return;
+      if(!S.visited[id])return;
+      playSound('click');
+      act(function(){enter(id);});
+    });
+    n.addEventListener('keydown',function(e){
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();n.click();}
+    });
+    if(n.getAttribute('data-node')!==S.scene&&S.visited[n.getAttribute('data-node')])n.setAttribute('tabindex','0');
+  });
 }
 
 function render(){
@@ -843,7 +1076,19 @@ function render(){
     items.appendChild(li);
   });
 
+  var evList=$('#evidenceList');evList.innerHTML='';
+  EVIDENCE && Object.keys(EVIDENCE).forEach(function(id){
+    var ev=EVIDENCE[id],li=el('li',hasEvidence(id)?'found':'');
+    if(hasEvidence(id)){li.appendChild(el('span','ev-name','✓ '+tx(ev.name)));li.appendChild(el('span','ev-desc',tx(ev.desc)));}
+    else{li.appendChild(el('span','ev-name','? '+tx(UI.evidenceUnknown)));li.appendChild(el('span','ev-lock',lang==='ar'?'ابحث في المحطة لاكتشافه.':'Explore the Ring to discover it.'));}
+    evList.appendChild(li);
+  });
+  var evCount=evidenceFoundCount(),evTotal=Object.keys(EVIDENCE).length;
+  $('#evidenceCount').textContent=evCount+' / '+evTotal;
+  $('#evidenceFill').style.width=(evTotal?evCount/evTotal*100:0)+'%';
+
   $('#mapbox').innerHTML=mapSVG();
+  wireMap();
   var obj=$('#objective');obj.innerHTML='';
   obj.appendChild(el('b',null,tx(UI.objective)));
   obj.appendChild(document.createTextNode(tx(objective())));
@@ -872,7 +1117,13 @@ function render(){
     var bar=el('div','bar');bar.setAttribute('role','meter');bar.setAttribute('aria-label',tx(en.name));
     bar.setAttribute('aria-valuemin','0');bar.setAttribute('aria-valuemax',S.combat.max);bar.setAttribute('aria-valuenow',S.combat.hp);
     var fill=el('i');fill.style.width=(S.combat.hp/S.combat.max*100)+'%';bar.appendChild(fill);
-    card.appendChild(row);card.appendChild(bar);foe.appendChild(card);
+    card.appendChild(row);card.appendChild(bar);
+    if(S.combat.last)card.appendChild(el('div','foe-log',tx(S.combat.last)));
+    foe.appendChild(card);
+    if(lastRenderedFX!==FX.token){
+      card.classList.add('fx-'+(FX.type||'hit'));
+      lastRenderedFX=FX.token;
+    }
   }
 
   /* ending card */
@@ -887,6 +1138,7 @@ function render(){
      [L('Health left','الصحة المتبقية'),S.hp+' / '+S.maxHp],
      [L('Rooms explored','الغرف المستكشفة'),explored+ofWord+ROOM_KEYS.length],
      [L('Warden trust','ثقة واردن'),(S.trust==null?50:S.trust)+'%'],
+     [L('Evidence recovered','الأدلة المستعادة'),evidenceFoundCount()+ofWord+Object.keys(EVIDENCE).length],
      [L('Endings found','النهايات المكتشفة'),(fetchStore(END_KEY)||[]).length+ofWord+ENDING_COUNT]].forEach(function(p){
       var d=el('div');d.appendChild(el('dt',null,tx(p[0])));d.appendChild(el('dd',null,String(p[1])));dl.appendChild(d);});
     ec.appendChild(dl);endBox.appendChild(ec);
@@ -910,6 +1162,7 @@ function render(){
   /* scroll + focus (only when a new step was taken, not on a language switch) */
   if(S.step!==lastStep){
     lastStep=S.step;
+    if(lastScenePulse!==S.step){$('.story').classList.add('scene-appear');lastScenePulse=S.step;setTimeout(function(){if($('.story'))$('.story').classList.remove('scene-appear');},380);}
     var first=log.querySelector('[data-cur="1"]');
     window.requestAnimationFrame(function(){
       if(first)first.scrollIntoView({block:'start',behavior:reduceMotion?'auto':'smooth'});
@@ -920,14 +1173,39 @@ function render(){
 
 function runChoice(c){
   if(c.off)return;
+  playSound('click');
   if(c.raw){c.run();}
   else act(c.run,{free:c.free});
 }
+
+/* ---------- replayability gallery ---------- */
+function renderGallery(){
+  var found=fetchStore(END_KEY)||[],count=found.length;
+  $('#gallerySummary').textContent=tx(UI.galleryFound)+count+' / '+ENDING_COUNT+(count<ENDING_COUNT?' — '+tx(UI.hiddenHint):'');
+  var grid=$('#galleryGrid');grid.innerHTML='';
+  Object.keys(ENDINGS).forEach(function(id){
+    var E=ENDINGS[id],isFound=found.indexOf(id)>-1,item=el('article','gallery-item'+(isFound?' found':''));
+    item.appendChild(el('span','tag',isFound?(lang==='ar'?'مكتشفة':'DISCOVERED'):(lang==='ar'?'مخفية':'LOCKED')));
+    item.appendChild(el('h3',null,isFound?tx(E.title):'???'));
+    item.appendChild(el('p',null,isFound?tx(E.label)+'. '+tx((ENDING_CLUES[id]||L('Explore different choices.','جرّب اختيارات مختلفة.'))):tx(ENDING_CLUES[id]||L('Explore different choices.','جرّب اختيارات مختلفة.'))));
+    grid.appendChild(item);
+  });
+}
+function openGallery(){renderGallery();$('#gallery').hidden=false;playSound('click');$('#galleryClose').focus();}
+function closeGallery(){$('#gallery').hidden=true;playSound('click');}
+function updateSoundButtons(){
+  var label=tx(soundOn?UI.soundOn:UI.soundOff);
+  ['#soundT','#soundG'].forEach(function(id){var b=$(id);if(b){b.textContent=label;b.setAttribute('aria-pressed',String(soundOn));}});
+}
+function toggleSound(){soundOn=!soundOn;store('meridian-ring-sound-v1',soundOn);updateSoundButtons();if(soundOn)playSound('click');}
 
 /* ---------- lifecycle ---------- */
 function loadSave(){
   var v=fetchStore(SAVE_KEY);
   if(!v||typeof v!=='object'||!SCENES[v.scene]||!Array.isArray(v.inv)||!Array.isArray(v.log))return null;
+  if(!Array.isArray(v.evidence))v.evidence=[];
+  if(!v.eventSeen||typeof v.eventSeen!=='object')v.eventSeen={};
+  if(v.trust==null)v.trust=50;
   return v;
 }
 function startNew(){
@@ -971,11 +1249,12 @@ function applyStatic(){
   var root=document.documentElement;
   root.lang=lang;root.dir=lang==='ar'?'rtl':'ltr';
   document.title=tx(UI.docTitle);
-  [].forEach.call(document.querySelectorAll('[data-i18n]'),function(n){n.textContent=tx(UI[n.getAttribute('data-i18n')]);});
-  [].forEach.call(document.querySelectorAll('[data-i18n-aria]'),function(n){n.setAttribute('aria-label',tx(UI[n.getAttribute('data-i18n-aria')]));});
+  [].forEach.call(document.querySelectorAll('[data-i18n]'),function(n){var key=n.getAttribute('data-i18n');if(UI[key])n.textContent=tx(UI[key]);});
+  [].forEach.call(document.querySelectorAll('[data-i18n-aria]'),function(n){var key=n.getAttribute('data-i18n-aria');if(UI[key])n.setAttribute('aria-label',tx(UI[key]));});
   var other=lang==='ar'?'en':'ar',label=lang==='ar'?'English':'العربية';
-  ['#langT','#langG'].forEach(function(id){var b=$(id);b.textContent=label;b.lang=other;});
-  resetRestart();updateFine();
+  ['#langT','#langG'].forEach(function(id){var b=$(id);if(b){b.textContent=label;b.lang=other;}});
+  resetRestart();updateFine();updateSoundButtons();
+  if(!$('#gallery').hidden)renderGallery();
 }
 function setLang(l){
   lang=l;store(LANG_KEY,l);applyStatic();
@@ -991,7 +1270,13 @@ function init(){
   applyStatic();
   $('#begin').addEventListener('click',startNew);
   $('#continue').addEventListener('click',resume);
+  $('#galleryT').addEventListener('click',openGallery);
+  $('#galleryG').addEventListener('click',openGallery);
+  $('#galleryClose').addEventListener('click',closeGallery);
+  $('#soundT').addEventListener('click',toggleSound);
+  $('#soundG').addEventListener('click',toggleSound);
   ['#langT','#langG'].forEach(function(id){$(id).addEventListener('click',function(){setLang(lang==='ar'?'en':'ar');});});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('#gallery').hidden)closeGallery();});
   var rb=$('#restart');
   rb.addEventListener('click',function(){
     if(rb.dataset.armed){resetRestart();startNew();return;}
