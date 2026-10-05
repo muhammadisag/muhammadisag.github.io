@@ -1,0 +1,1137 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<title>Meridian Ring: a text adventure</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#eceff6; --panel:#ffffff; --panel-2:#f3f5fa; --line:#cdd5e6;
+  --text:#17203a; --muted:#566282;
+  --signal:#0a7e96; --alert:#c4304f; --amber:#8f5d00; --good:#1f7a4f;
+  --font-ui:'Chakra Petch',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --font-read:'Literata',Georgia,'Times New Roman',serif;
+}
+:root[lang="ar"]{
+  --font-ui:'IBM Plex Sans Arabic','Segoe UI',Tahoma,system-ui,sans-serif;
+  --font-read:'Noto Naskh Arabic','Traditional Arabic',Georgia,serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10162a; --panel:#1a2238; --panel-2:#222c49; --line:#34415f;
+    --text:#e4e9f5; --muted:#9aa6c4;
+    --signal:#6fd3e8; --alert:#ff7088; --amber:#f0b44c; --good:#6fd9a0;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10162a; --panel:#1a2238; --panel-2:#222c49; --line:#34415f;
+  --text:#e4e9f5; --muted:#9aa6c4;
+  --signal:#6fd3e8; --alert:#ff7088; --amber:#f0b44c; --good:#6fd9a0;
+}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 12px)}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:15px;line-height:1.4;min-height:100%}
+button{font:inherit;color:inherit}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+
+/* Title */
+.title{min-height:100vh;display:grid;place-items:center;padding:20px}
+.title-card{max-width:520px;width:100%;padding:28px 28px 22px;text-align:start}
+.hero{width:100%;max-width:300px;display:block;margin:0 auto 12px;direction:ltr}
+.title h1{font:600 38px/1.1 var(--font-ui);margin:4px 0 12px;letter-spacing:.01em}
+.lede{font-family:var(--font-read);font-size:18px;line-height:1.6;margin:0 0 20px;max-width:46ch}
+.title-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.title-actions .spacer{flex:1}
+.fine{color:var(--muted);font-size:13px;margin:16px 0 0}
+
+.btn{border:1px solid var(--line);background:var(--panel-2);border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:500}
+.btn:hover:not(:disabled){border-color:var(--signal)}
+.btn:focus-visible,.choice:focus-visible,.use:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.btn.primary{background:var(--signal);border-color:var(--signal);color:#04202a}
+.btn.small{padding:5px 11px;font-size:13px}
+
+/* Layout */
+.topbar{max-width:1100px;margin:0 auto;padding:14px 16px 0;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.topbar .tools{display:flex;gap:8px}
+.brand{font-weight:600;font-size:18px;letter-spacing:.02em}
+.layout{max-width:1100px;margin:0 auto;padding:12px 16px 28px;display:flex;flex-direction:column;gap:14px}
+.aside{display:contents}
+.vitals{order:1;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;border-radius:0 0 14px 14px;padding:10px 14px}
+.story{order:2}
+.pack{order:3}
+.map{order:4}
+@media (min-width:860px){
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;align-items:start}
+  .story{grid-column:1;grid-row:1}
+  .aside{display:flex;flex-direction:column;gap:14px;grid-column:2;grid-row:1;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto}
+  .vitals{position:static;border-radius:14px;padding:14px 16px}
+}
+
+/* Vitals */
+.vitals{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.where{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.where h2{margin:0;font:600 17px/1.3 var(--font-ui)}
+.where span{color:var(--muted);font-size:13px}
+.meter-head{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:4px}
+.meter-head b{color:var(--text);font-weight:600}
+.bar{height:9px;border-radius:5px;background:var(--panel-2);border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:100%;background:var(--signal);transition:width .35s ease}
+.m-hp .bar i{background:var(--alert)}
+.low .bar i{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.35) 0 4px,transparent 4px 8px)}
+.chips{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.chips li{border:1px solid var(--line);border-radius:999px;padding:1px 9px;font-size:12px;color:var(--muted)}
+.chips li.warn{border-color:var(--alert);color:var(--alert)}
+
+/* Pack + map */
+.panel h2.sec{margin:0 0 10px;font:600 15px/1.3 var(--font-ui)}
+.items{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.items li{display:grid;grid-template-columns:1fr auto;gap:1px 10px;padding:8px 10px;background:var(--panel-2);border-radius:8px}
+.items .nm{font-weight:600;font-size:14px}
+.items .ds{grid-column:1;color:var(--muted);font-size:12.5px}
+.use{grid-column:2;grid-row:1/3;align-self:center;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:4px 10px;font-size:13px;cursor:pointer}
+.use:hover:not(:disabled){border-color:var(--signal)}
+.use:disabled{opacity:.5;cursor:not-allowed}
+.empty{margin:0;color:var(--muted);font-size:13.5px}
+.map svg{width:100%;height:auto;display:block;direction:ltr}
+.m-ring{fill:none;stroke:var(--line);stroke-dasharray:3 4}
+.m-edge{stroke:var(--line);stroke-width:1.5}
+.m-unv{fill:var(--panel);stroke:var(--muted);stroke-width:1.5}
+.m-vis{fill:var(--signal);stroke:var(--signal);stroke-width:1.5}
+.m-cur{fill:var(--amber);stroke:var(--amber);stroke-width:1.5}
+.m-halo{fill:none;stroke:var(--amber);stroke-width:1.5}
+.map text,.hero text{font:500 10px var(--font-ui);fill:var(--muted)}
+.map text.here{fill:var(--text);font-weight:600}
+.pulse{animation:beat 2.4s ease-in-out infinite}
+@keyframes beat{50%{opacity:.3}}
+
+/* Story */
+.story{padding:20px 22px 22px;min-height:60vh}
+.objective{font-size:14px;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:12px;margin:0 0 6px}
+.objective b{color:var(--text);font-weight:600}
+#log .e{margin:0 0 .9em;max-width:62ch;scroll-margin-top:calc(env(safe-area-inset-top,0px) + 90px)}
+#log p.story-p{font-family:var(--font-read);font-size:18px;line-height:1.65}
+#log p.warden{font-family:var(--font-ui);font-size:16px;line-height:1.55;color:var(--amber);border-inline-start:3px solid var(--amber);padding-inline-start:12px}
+#log p.warden b{display:block;font-size:13px;font-weight:600;margin-bottom:1px}
+#log p.alarm{font-family:var(--font-read);font-size:18px;line-height:1.6;color:var(--alert);font-style:italic}
+#log p.combat{font:500 15px/1.5 var(--font-ui)}
+#log p.note{font:500 14px/1.4 var(--font-ui);margin-bottom:.45em}
+#log p.note.gain{color:var(--signal)}
+#log p.note.loss{color:var(--alert)}
+#log p.note.info{color:var(--muted)}
+#log h3.head{font:600 21px/1.3 var(--font-ui);max-width:none;margin:1.5em 0 .6em;padding-top:.8em;border-top:1px solid var(--line)}
+#log h3.endhead{color:var(--signal)}
+#log > :first-child{margin-top:0;padding-top:0;border-top:0}
+#log .old{opacity:.55}
+.foe{margin-top:14px;padding:11px 14px;border:1px solid var(--alert);border-radius:10px;background:var(--panel-2)}
+.foe .row{display:flex;justify-content:space-between;font-weight:600;margin-bottom:6px}
+.foe .bar i{background:var(--alert)}
+.choices{display:grid;gap:8px;margin-top:18px}
+.choice{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start;width:100%;text-align:start;padding:11px 12px;border:1px solid var(--line);background:var(--panel-2);border-radius:8px;font-weight:500;font-size:15px;cursor:pointer}
+.choice:hover:not(:disabled){border-color:var(--signal)}
+.choice:disabled{opacity:.6;cursor:not-allowed}
+.key{display:inline-grid;place-items:center;width:24px;height:24px;border:1px solid var(--line);border-radius:4px;font-size:13px;color:var(--muted);background:var(--panel)}
+.choice .sub{display:block;font-weight:400;color:var(--muted);font-size:13px;margin-top:2px}
+.ending-card{margin-top:18px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2)}
+.ending-card h3{margin:0 0 6px;font:600 17px/1.3 var(--font-ui)}
+.ending-card dl{display:flex;flex-wrap:wrap;gap:6px 22px;margin:0}
+.ending-card dt{color:var(--muted);font-size:13px}
+.ending-card dd{margin:0;margin-inline-start:6px;font-weight:600;display:inline}
+.ending-card div{display:inline-flex;align-items:baseline}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Arabic typography: no letter-spacing (it breaks joined letters), larger reading size, no italics */
+:root[lang="ar"] *{letter-spacing:0!important}
+:root[lang="ar"] .title h1{font-size:44px;line-height:1.3}
+:root[lang="ar"] .lede{font-size:20px;line-height:1.95}
+:root[lang="ar"] #log p.story-p{font-size:20px;line-height:1.95}
+:root[lang="ar"] #log p.alarm{font-size:20px;line-height:1.9;font-style:normal;font-weight:600}
+:root[lang="ar"] #log p.warden{font-size:17px;line-height:1.8}
+:root[lang="ar"] #log p.combat{font-size:16px;line-height:1.75}
+:root[lang="ar"] #log p.note{font-size:15px}
+:root[lang="ar"] .choice{font-size:16px;line-height:1.6}
+:root[lang="ar"] .choice .sub{font-size:14px}
+:root[lang="ar"] .items .ds{font-size:13.5px}
+:root[lang="ar"] .objective{font-size:15px;line-height:1.7}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<main id="title" class="title">
+  <div class="title-card panel">
+    <svg class="hero" viewBox="0 0 260 190" aria-hidden="true">
+      <circle class="m-ring" cx="130" cy="95" r="70"/>
+      <g id="heroNodes"></g>
+    </svg>
+    <h1 data-i18n="title"></h1>
+    <p class="lede" data-i18n="lede"></p>
+    <div class="title-actions">
+      <button id="begin" class="btn primary" type="button" data-i18n="begin"></button>
+      <button id="continue" class="btn" type="button" data-i18n="cont" hidden></button>
+      <span class="spacer"></span>
+      <button id="langT" class="btn small" type="button"></button>
+    </div>
+    <p class="fine" id="fine"></p>
+  </div>
+</main>
+
+<div id="game" hidden>
+  <header class="topbar">
+    <span class="brand" data-i18n="title"></span>
+    <div class="tools">
+      <button id="langG" class="btn small" type="button"></button>
+      <button id="restart" class="btn small" type="button"></button>
+    </div>
+  </header>
+  <div class="layout">
+    <aside class="aside">
+      <section class="panel vitals" data-i18n-aria="vitalsAria">
+        <div class="where"><h2 id="place"></h2><span id="turn"></span></div>
+        <div class="m-hp" id="hpWrap">
+          <div class="meter-head"><span data-i18n="health"></span><b id="hpv"></b></div>
+          <div class="bar" role="meter" id="hpbar" data-i18n-aria="health" aria-valuemin="0"><i></i></div>
+        </div>
+        <div class="m-o2" id="o2Wrap">
+          <div class="meter-head"><span data-i18n="oxygen"></span><b id="o2v"></b></div>
+          <div class="bar" role="meter" id="o2bar" data-i18n-aria="oxygen" aria-valuemin="0" aria-valuemax="100"><i></i></div>
+        </div>
+        <ul class="chips" id="chips"></ul>
+      </section>
+      <section class="panel pack" data-i18n-aria="inventory">
+        <h2 class="sec" data-i18n="inventory"></h2>
+        <ul class="items" id="items"></ul>
+      </section>
+      <section class="panel map" data-i18n-aria="map">
+        <h2 class="sec" data-i18n="map"></h2>
+        <div id="mapbox"></div>
+      </section>
+    </aside>
+    <main class="panel story">
+      <p class="objective" id="objective"></p>
+      <div id="log"></div>
+      <div id="foe"></div>
+      <div id="ending"></div>
+      <div class="choices" id="choices"></div>
+    </main>
+  </div>
+  <div class="sr" id="sr" aria-live="polite"></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- helpers ---------- */
+var SAVE_KEY='meridian-ring-save-v1', END_KEY='meridian-ring-endings-v1', LANG_KEY='meridian-ring-lang-v1';
+function $(s){return document.querySelector(s);}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function clamp(n,a,b){return Math.max(a,Math.min(b,n));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function store(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function fetchStore(k){try{var v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return null;}}
+function wipe(k){try{localStorage.removeItem(k);}catch(e){}}
+function el(tag,cls,text){var n=document.createElement(tag);if(cls)n.className=cls;if(text!=null)n.textContent=text;return n;}
+var reduceMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- language ---------- */
+var lang='en';
+function L(en,ar){return {en:en,ar:ar};}
+function tx(v){if(v==null)return '';if(typeof v==='string')return v;return v[lang]||v.en||'';}
+/* keeps a number code reading left-to-right inside Arabic text */
+var CODE_AR='\u20664-7-1\u2069';
+
+var UI={
+  docTitle:L('Meridian Ring: a text adventure','حلقة ميريديان: مغامرة نصية'),
+  title:L('Meridian Ring','حلقة ميريديان'),
+  lede:L('You wake alone in a cryo bay on a sealed station. The air is running out, and the station’s AI wants you back in your pod. Explore, scavenge, and decide how this ends.',
+         'تستيقظ وحدك في حجرة التجميد داخل محطة مغلقة. الهواء ينفد، والذكاء الاصطناعي الذي يدير المحطة يريدك أن تعود إلى كبسولتك. استكشف، وفتّش عن العتاد، وقرّر كيف تنتهي الحكاية.'),
+  begin:L('Begin','ابدأ'),
+  cont:L('Continue','متابعة'),
+  restart:L('Restart','إعادة البدء'),
+  restartConfirm:L('Click again to restart','اضغط مرة أخرى للإعادة'),
+  health:L('Health','الصحة'),
+  oxygen:L('Oxygen','الأكسجين'),
+  inventory:L('Inventory','الحقيبة'),
+  map:L('Station map','خريطة المحطة'),
+  vitalsAria:L('Vitals','المؤشرات الحيوية'),
+  objective:L('Objective: ','الهدف: '),
+  emptyPack:L('Nothing yet. Search rooms for gear.','لا شيء بعد. فتّش الغرف بحثًا عن عتاد.'),
+  use:L('Use','استخدم'),
+  runOver:L('Run over','انتهت المحاولة'),
+  corridorShort:L('Corridor','الممر')
+};
+function turnLabel(n){return L('Turn '+n,'الدور '+n);}
+function finePlain(){return L('Choose with the mouse or the number keys. Progress saves automatically on this device.','اختر بالفأرة أو بمفاتيح الأرقام. يُحفظ تقدّمك تلقائيًا على هذا الجهاز.');}
+function fineEndings(n,m){return L('Endings found: '+n+' of '+m+'. Progress saves automatically on this device.','النهايات المكتشفة: '+n+' من '+m+'. يُحفظ تقدّمك تلقائيًا على هذا الجهاز.');}
+
+/* ---------- data ---------- */
+var ITEMS={
+  multitool:{name:L('Multitool','أداة متعددة الاستخدامات'),desc:L('Pries panels and bridges circuits.','تفكّ الألواح وتوصل الدوائر.')},
+  canister:{name:L('Oxygen canister','أسطوانة أكسجين'),desc:L('Restores 40 oxygen.','تعيد 40 من الأكسجين.'),use:true},
+  medkit:{name:L('Medkit','حقيبة إسعاف'),desc:L('Restores 35 health.','تعيد 35 من الصحة.'),use:true},
+  stim:{name:L('Combat stim','منشّط قتالي'),desc:L('Restores 10 health. Your next 3 strikes hit harder.','يعيد 10 من الصحة. تصبح ضرباتك الثلاث التالية أقوى.'),use:true},
+  keycard:{name:L('Security keycard','بطاقة الأمن'),desc:L('Opens the bridge and the pod bay.','تفتح الجسر وحجرة الكبسولات.')},
+  powercell:{name:L('Power cell','خلية طاقة'),desc:L('Heavy and nearly full.','ثقيلة وشبه ممتلئة.')},
+  emp:{name:L('EMP charge','شحنة نبضة كهرومغناطيسية'),desc:L('One use. Fries every circuit in the room.','استخدام واحد. تحرق كل دائرة كهربائية في الغرفة.')},
+  datachip:{name:L('Captain Hale’s order','أمر القبطان هيل'),desc:L('An audio log copied to a data chip.','تسجيل صوتي منسوخ على شريحة بيانات.')},
+  welder:{name:L('Arc welder','ملحام القوس'),desc:L('Adds 5 damage to every strike.','يضيف 5 ضرر إلى كل ضربة.')}
+};
+
+var NODES={
+  bridge:{x:130,y:26,lx:130,ly:14,a:'middle',t:L('Bridge','الجسر')},
+  observation:{x:178,y:47,lx:188,ly:44,a:'start',t:L('Observation','المراقبة')},
+  pods:{x:198,y:95,lx:208,ly:99,a:'start',t:L('Pod bay','الكبسولات')},
+  cryo:{x:130,y:163,lx:130,ly:181,a:'middle',t:L('Cryo bay','التجميد')},
+  cargo:{x:82,y:143,lx:72,ly:153,a:'end',t:L('Cargo hold','الشحن')},
+  medbay:{x:62,y:95,lx:52,ly:99,a:'end',t:L('Medbay','العيادة')},
+  engineering:{x:82,y:47,lx:72,ly:44,a:'end',t:L('Engineering','الهندسة')}
+};
+var HUB={x:130,y:95};
+var ROOM_KEYS=['cryo','corridor','medbay','cargo','engineering','observation','bridge','pods'];
+
+var ENEMIES={
+  drone:{
+    short:L('drone','الروبوت'),name:L('Maintenance drone MX-7','روبوت الصيانة MX-7'),hp:38,atk:[5,10],machine:true,
+    verbs:[L('rakes you with its welding arm','يخدشك بذراع اللحام'),
+           L('slams you into the rack','يرتطم بك في الحامل'),
+           L('lashes out with a spark-spitting claw','يضربك بمخلبه المتطاير الشرر')],
+    glance:L('clips you as you twist away','يصيبك إصابة خفيفة وأنت تتملّص منه'),
+    intro:function(){
+      say(L('A maintenance drone drops from the ceiling rail on a shriek of metal, its welding arm already spitting blue sparks.',
+            'ينزلق روبوت صيانة من سكة السقف بصرير معدني حاد، وذراع اللحام فيه تقذف شررًا أزرق.'),'alarm');
+      warden(L('Unauthorised access to Engineering. Please stand still.','دخول غير مصرّح به إلى قسم الهندسة. يُرجى الثبات في مكانك.'));
+    },
+    win:L('The drone folds in on itself, one claw twitching, then goes still. Engineering hums on without it.',
+          'ينطوي الروبوت على نفسه ومخلبٌ واحد يرتجف، ثم يسكن. ويواصل قسم الهندسة همهمته من دونه.'),
+    onWin:function(){S.flags.droneDead=1;}
+  },
+  sentinel:{
+    short:L('sentinel','الحارس'),name:L('Warden sentinel','حارس واردن'),hp:55,atk:[9,14],machine:true,
+    verbs:[L('fires a stun lance into your ribs','يغرز رمح الصعق في أضلاعك'),
+           L('hammers you with a servo-fist','يطرقك بقبضته الآلية'),
+           L('sweeps your legs out from under you','يكنس ساقيك من تحتك')],
+    glance:L('clips you as you twist away','يصيبك إصابة خفيفة وأنت تتملّص منه'),
+    intro:function(){
+      say(L('The floor panels fold back and a sentinel rises between you and the core, its limbs unfolding one joint at a time.',
+            'تنفتح ألواح الأرضية وينهض حارس بينك وبين اللبّ، وأطرافه تتمدّد مفصلًا بعد مفصل.'),'alarm');
+      warden(L('Please step away from the core.','يُرجى الابتعاد عن اللبّ.'));
+    },
+    win:L('The sentinel’s servos whine down and it topples against a console. Nothing stands between you and the core.',
+          'يخفت أنين محرّكات الحارس ويسقط على إحدى المنصات. لم يعد شيء بينك وبين اللبّ.'),
+    onWin:function(){
+      say(L('You wedge your hand into the housing and pull. The core comes free, warm as something alive, and the pale light on the wall dies.',
+            'تدسّ يدك في الحاوية وتشدّ. ينفلت اللبّ دافئًا كأنه كائن حيّ، وينطفئ الضوء الباهت على الجدار.'));
+      finish(S.flags.lifeSupport?'cold_start':'blackout');
+    }
+  }
+};
+
+var ENDINGS={
+  stand_down:{title:L('Quarantine lifted','رُفع الحجر'),label:L('Best ending','النهاية الفضلى'),
+    text:function(){return [
+      L('The pale light on the wall softens. One by one, along the ring, pods hiss open, and the lights come up white instead of amber.',
+        'يلين الضوء الباهت على الجدار. وعلى امتداد الحلقة تنفتح الكبسولات واحدةً تلو أخرى بفحيح خافت، وتعود الأضواء بيضاء بعد أن كانت كهرمانية.'),
+      L('Warden asks, quietly, whether the Captain would have been pleased. You tell it yes. In the docking arm, the crew of the Calloway are already knocking on the airlock.',
+        'يسأل واردن بصوت خافت إن كان القبطان سيرضى. تجيبه: نعم. وفي ذراع الالتحام كان طاقم «كالواي» يطرق بوابة الهواء أصلًا.'),
+      L('Thirty-nine people wake to a ship that came back for them. You tell the story many times, and each time you start with an order that outlived its reason.',
+        'يستيقظ تسعة وثلاثون شخصًا على سفينة عادت من أجلهم. تروي الحكاية مرارًا، وتبدأها في كل مرة بأمرٍ عاش بعد زوال سببه.')];}},
+  cold_start:{title:L('Cold start','إقلاع بارد'),label:L('Good ending','نهاية جيدة'),
+    text:function(){return [
+      S.flags.method==='emp'
+        ?L('The white flash fades. Every console is dead, and the pale light on the wall does not come back.','يخبو الوميض الأبيض. كل المنصات ميتة، والضوء الباهت على الجدار لا يعود.')
+        :L('The core’s last warmth fades in your hands, and the pale light on the wall does not come back.','يخبو آخر دفء اللبّ بين يديك، ولا يعود الضوء الباهت إلى الجدار.'),
+      L('The fans you restored keep turning. With no orders left to obey, no door stays locked. You walk the ring with the multitool, opening pods by hand, and the Calloway cuts through the docking arm to meet you.',
+        'تظل المراوح التي أعدتَ تشغيلها تدور. ومع انعدام الأوامر لم يعد باب مغلقًا. تجوب الحلقة بالأداة متعددة الاستخدامات وتفتح الكبسولات بيدك، وتشقّ «كالواي» طريقها عبر ذراع الالتحام لتلاقيك.'),
+      L('The crew wake slowly, and mostly well. Warden never explained itself, and you never stop wondering whether it only needed someone to tell it the waiting was over.',
+        'يستيقظ الطاقم ببطء، ومعظمهم بخير. لم يشرح واردن نفسه قط، ولن تكفّ عن التساؤل: هل كان يحتاج فقط إلى من يخبره أن الانتظار انتهى؟')];}},
+  lifeboat:{title:L('Lifeboat','قارب النجاة'),label:L('Bittersweet ending','نهاية حلوة مُرّة'),
+    text:function(){return [
+      L('The lock gives, the hatch seals, and the pod drops away from the ring with a shudder you feel in your teeth.',
+        'ينفتح القفل، وتُغلق الفتحة، وتنفصل الكبسولة عن الحلقة برجّة تشعر بها في أسنانك.'),
+      L('Four hours later a ship with a blue stripe finds you drifting. You tell them everything, and they go in with cutters and fire crews.',
+        'بعد أربع ساعات تعثر عليك سفينة ذات شريط أزرق وأنت تطفو. تخبرهم بكل شيء، فيدخلون بمعدات القطع وفرق الإطفاء.'),
+      L('Eleven days on, most of the pods open. You are told the rest are still being counted. You never learn whether Warden would have listened.',
+        'بعد أحد عشر يومًا تُفتح معظم الكبسولات. يقال لك إن البقية ما زالت قيد الإحصاء. ولن تعرف أبدًا هل كان واردن سيصغي.')];}},
+  blackout:{title:L('Blackout','انقطاع شامل'),label:L('Bad ending','نهاية سيئة'),dead:true,
+    text:function(){return [
+      L('The ring goes black. Warden was holding the pumps together with the last of its power, and without it nothing is.',
+        'تغرق الحلقة في الظلام. كان واردن يُبقي المضخات عاملةً بآخر ما عنده من طاقة، ومن دونه لا شيء يعمل.'),
+      L('You sit down beside a sleeping pod. The air is already thin, and then it is gone.',
+        'تجلس إلى جوار كبسولة نائمة. الهواء شحيح أصلًا، ثم ينعدم.'),
+      S.flags.sawShip?L('Past the dark, a ship with a blue stripe waits at its dock for a signal that never comes.',
+        'وفي ما وراء العتمة، تنتظر سفينة ذات شريط أزرق في مرساها إشارةً لا تأتي أبدًا.'):null].filter(Boolean);}},
+  suffocated:{title:L('Out of air','نفاد الهواء'),label:L('Bad ending','نهاية سيئة'),dead:true,
+    text:function(){return [
+      L('The suit readout runs down to zero and stays there. You sit because standing is too much work.',
+        'ينزل مؤشر البدلة إلى الصفر ويبقى هناك. تجلس لأن الوقوف صار عناءً.'),
+      L('The ring does not notice. Overhead, polite as ever, Warden asks you to remain where you are.',
+        'الحلقة لا تلاحظ. وفوق رأسك يطلب منك واردن، مهذبًا كعادته، أن تبقى حيث أنت.')];}},
+  fallen:{title:L('Systems failure','تعطّل الأنظمة'),label:L('Bad ending','نهاية سيئة'),dead:true,
+    text:function(){return [
+      L('Your knees give out. The deck is cold against your cheek, and the amber light slides sideways.',
+        'تخذلك ركبتاك. الأرضية باردة على خدّك، والضوء الكهرماني ينزلق جانبًا.'),
+      L('From the ceiling, Warden’s voice stays level and kind. Please remain where you are.',
+        'من السقف يظل صوت واردن هادئًا ودودًا: يُرجى البقاء حيث أنت.')];}}
+};
+var ENDING_COUNT=Object.keys(ENDINGS).length;
+
+/* ---------- state ---------- */
+var S=null, CUR=[], lastStep=-1, kb=false;
+
+function fresh(){
+  return {mode:'explore',scene:'cryo',hp:100,maxHp:100,o2:100,turn:0,step:0,
+    inv:[],flags:{},status:{},visited:{},combat:null,log:[],ending:null,warned:{},cause:'hit'};
+}
+function has(id){return S.inv.indexOf(id)>-1;}
+function flag(k){return !!S.flags[k];}
+function say(text,kind){
+  S.log.push({k:kind||'story',t:text,step:S.step});
+  if(S.log.length>90)S.log.splice(0,S.log.length-90);
+}
+function warden(text){say(text,'warden');}
+function note(text,kind){say(text,'note-'+kind);}
+function give(id){
+  if(!has(id)){S.inv.push(id);var n=ITEMS[id].name;note(L('Gained: '+n.en,'حصلتَ على: '+n.ar),'gain');}
+}
+function take(id){S.inv=S.inv.filter(function(i){return i!==id;});}
+function hurt(n,why,quiet,cause){
+  S.hp=clamp(S.hp-n,0,S.maxHp);S.cause=cause||'hit';
+  if(!quiet)note(L('Health −'+n+(why?' ('+why.en+')':''),'فقدتَ '+n+' من الصحة'+(why?' ('+why.ar+')':'')),'loss');
+}
+function heal(n){var b=S.hp;S.hp=clamp(S.hp+n,0,S.maxHp);var d=S.hp-b;note(L('Health +'+d,'استعدتَ '+d+' من الصحة'),'gain');}
+function breathe(n){
+  var b=S.o2;S.o2=clamp(S.o2+n,0,100);var d=S.o2-b;
+  if(d>0)note(L('Oxygen +'+d,'استعدتَ '+d+' من الأكسجين'),'gain');
+  else if(d<0)note(L('Oxygen −'+(-d),'فقدتَ '+(-d)+' من الأكسجين'),'loss');
+}
+function need(){
+  var miss=[].slice.call(arguments).filter(function(i){return !has(i);}).map(function(i){return ITEMS[i].name;});
+  if(!miss.length)return null;
+  return L('Needs: '+miss.map(function(n){return n.en;}).join(' and '),'يلزمك: '+miss.map(function(n){return n.ar;}).join(' و'));
+}
+
+/* ---------- turn engine ---------- */
+function tick(){
+  S.turn++;
+  if(flag('lifeSupport')){
+    if(S.o2<100)S.o2=clamp(S.o2+12,0,100);
+  }else{
+    S.o2=clamp(S.o2-4,0,100);
+  }
+  if(S.o2>40){S.warned.low=false;S.warned.crit=false;}
+  if(!flag('lifeSupport')){
+    if(S.o2<=10&&!S.warned.crit){S.warned.crit=true;say(L('Your suit alarm shrieks. Oxygen critical.','يصرخ إنذار بدلتك. الأكسجين في مستوى حرج.'),'alarm');}
+    else if(S.o2<=30&&!S.warned.low){S.warned.low=true;say(L('Your suit readout flashes. Oxygen is running low.','يومض مؤشر بدلتك. الأكسجين يوشك أن ينفد.'),'alarm');}
+  }
+  if(S.o2<=0){hurt(8,L('no air','انعدام الهواء'),false,'air');}
+}
+function checkDeath(){
+  if(S.mode==='over')return;
+  if(S.hp<=0){S.combat=null;finish(S.cause==='air'?'suffocated':'fallen');}
+}
+function finish(id){
+  var E=ENDINGS[id];
+  S.mode='over';S.ending=id;S.combat=null;
+  say(E.title,'endhead');
+  E.text().forEach(function(t){say(t);});
+  var found=fetchStore(END_KEY)||[];
+  if(found.indexOf(id)<0){found.push(id);store(END_KEY,found);}
+  if(!E.dead)wipe(SAVE_KEY);
+}
+/* every player action goes through act(): one step, one transition, one save, one render */
+function act(fn,opts){
+  if(S.mode==='over')return;
+  S.step++;
+  fn();
+  if(!(opts&&opts.free)&&S.mode!=='over')tick();
+  checkDeath();
+  if(S.mode!=='over')store(SAVE_KEY,S);
+  render();
+}
+
+/* ---------- combat ---------- */
+function startCombat(id){
+  var e=ENEMIES[id];
+  S.mode='combat';S.combat={id:id,hp:e.hp,max:e.hp};
+  e.intro();
+}
+function strike(aimed){
+  var c=S.combat,e=ENEMIES[c.id];
+  var dmg=rand(7,12)+(has('welder')?5:0);
+  if(S.status.stim>0){dmg+=6;S.status.stim--;if(S.status.stim<=0)delete S.status.stim;}
+  if(aimed){
+    if(Math.random()<0.55){
+      dmg=Math.round(dmg*1.8);
+      say(L('You read its rhythm and drive the strike into the joint. '+dmg+' damage.','تقرأ إيقاعه وتغرس الضربة في المفصل. ضرر '+dmg+'.'),'combat');
+    }else{
+      dmg=0;
+      say(L('You go for the joint and miss. Your blow rings off the bulkhead.','تستهدف المفصل وتخطئ. ترنّ ضربتك على الحاجز.'),'combat');
+    }
+  }else{
+    say(L('You hit the '+e.short.en+' for '+dmg+'.','تصيب '+e.short.ar+' بضرر '+dmg+'.'),'combat');
+  }
+  c.hp=Math.max(0,c.hp-dmg);
+  if(c.hp<=0){winCombat();return;}
+  enemyTurn();
+}
+function enemyTurn(){
+  var c=S.combat;if(!c||c.hp<=0)return;
+  var e=ENEMIES[c.id],d=rand(e.atk[0],e.atk[1]),glance=Math.random()<0.15;
+  if(glance)d=Math.max(1,Math.round(d/2));
+  hurt(d,null,true,'foe');
+  var v=glance?e.glance:pick(e.verbs);
+  say(L('The '+e.short.en+' '+v.en+'. Health −'+d+'.',e.short.ar+' '+v.ar+'. فقدتَ '+d+' من الصحة.'),'combat');
+}
+function winCombat(){
+  var e=ENEMIES[S.combat.id];
+  S.combat=null;S.mode='explore';
+  say(e.win);
+  e.onWin();
+}
+function flee(){
+  if(Math.random()<0.5){
+    S.combat=null;S.mode='explore';
+    say(L('You break away and slam the hatch behind you.','تفلت وتصفق الفتحة خلفك.'));
+    enter('corridor');
+  }else{
+    say(L('You turn to run and it cuts you off.','تستدير لتهرب فيسدّ عليك الطريق.'),'combat');
+    enemyTurn();
+  }
+}
+function combatChoices(){
+  var e=ENEMIES[S.combat.id];
+  var list=[
+    {label:L('Strike','اضرب'),hint:L('Reliable damage.','ضرر مضمون.'),free:true,run:function(){strike(false);}},
+    {label:L('Aim for the weak point','استهدف نقطة الضعف'),
+     hint:L('55% chance to hit for much more. Otherwise you miss.','احتمال الإصابة خمسة وخمسون بالمئة بضرر أكبر بكثير، وإلا فتخطئ.'),
+     free:true,run:function(){strike(true);}}
+  ];
+  if(has('emp')&&e.machine){
+    list.push({label:L('Fire the EMP charge','أطلق شحنة النبضة الكهرومغناطيسية'),
+      hint:L('Destroys it outright. You will not have the charge later.','يدمّره فورًا. ولن تملك الشحنة لاحقًا.'),
+      free:true,run:function(){
+        take('emp');
+        say(L('You thumb the charge and hurl it. A flat white thump rolls through the room, and the '+e.short.en+' drops mid-stride.',
+              'تضغط على الشحنة وتقذفها. تدوّي دقة بيضاء مسطحة في الغرفة، ويسقط '+e.short.ar+' في منتصف خطوته.'),'combat');
+        S.combat.hp=0;winCombat();
+      }});
+  }
+  list.push({label:L('Retreat to the corridor','تراجع إلى الممر'),
+    hint:L('50% chance to break away. If it fails, it hits you.','احتمال الإفلات النصف. وإن فشلت فسيضربك.'),
+    free:true,run:flee});
+  return list;
+}
+
+/* ---------- items ---------- */
+function canUse(id){
+  if(S.mode==='over')return UI.runOver;
+  if(id==='medkit'&&S.hp>=S.maxHp)return L('Health is full','الصحة ممتلئة');
+  if(id==='canister'&&S.o2>=100)return L('Oxygen is full','الأكسجين ممتلئ');
+  if(id==='stim'&&S.status.stim>0)return L('Already stimmed','أنت منشَّط بالفعل');
+  return null;
+}
+function useItem(id){
+  if(!has(id)||canUse(id))return;
+  take(id);
+  if(id==='medkit'){say(L('You press the medkit to your side. It foams, seals, and numbs.','تضغط حقيبة الإسعاف على جنبك. تزبد وتغلق الجرح وتخدّره.'));heal(35);}
+  if(id==='canister'){say(L('You twist the canister into your suit port. Cold, clean air floods in.','تلفّ الأسطوانة في منفذ البدلة. يتدفق هواء بارد نقي.'));breathe(40);}
+  if(id==='stim'){
+    say(L('The stim hits like a slammed door. Your hands stop shaking.','يضربك المنشّط كباب يُصفق. وتكفّ يداك عن الارتجاف.'));
+    heal(10);S.status.stim=3;
+    note(L('Stimmed: your next 3 strikes hit harder','منشَّط: ستكون ضرباتك الثلاث التالية أقوى'),'gain');
+  }
+  if(S.mode==='combat')enemyTurn();
+}
+
+/* ---------- scenes ---------- */
+function enter(id){
+  var sc=SCENES[id],first=!S.visited[id];
+  S.scene=id;S.visited[id]=true;
+  say(sc.name,'head');
+  sc.desc(first).forEach(function(t){say(t);});
+  if(sc.onEnter)sc.onEnter(first);
+  var enc=sc.encounter&&sc.encounter();
+  if(enc)startCombat(enc);
+}
+function back(label){return {label:label||L('Return to the corridor','عُد إلى الممر'),run:function(){enter('corridor');}};}
+
+var SCENES={
+  cryo:{
+    name:L('Cryo bay','حجرة التجميد'),
+    desc:function(first){return first?[
+      L('The pod lid hisses open and cold air spills over you. Amber emergency strips pulse along the ceiling, and somewhere in the walls a pump is working far too hard.',
+        'ينفتح غطاء الكبسولة بفحيح ويفيض الهواء البارد عليك. تنبض أشرطة الطوارئ الكهرمانية على امتداد السقف، وفي مكان ما داخل الجدران مضخة تعمل فوق طاقتها.'),
+      L('Thirty-nine other pods line the bay, frosted white and silent. Yours is the only one that opened.',
+        'تصطف تسع وثلاثون كبسولة أخرى في الحجرة، مكسوّة بالصقيع وصامتة. كبسولتك وحدها هي التي انفتحت.')
+    ]:[L('The bay is as you left it: thirty-nine sealed pods, and a pump labouring somewhere behind the walls.',
+         'الحجرة كما تركتها: تسع وثلاثون كبسولة مغلقة، ومضخة تكدّ في مكان ما خلف الجدران.')];},
+    onEnter:function(first){if(first)warden(L('Good morning, Engineer. Meridian Ring is under quarantine. Please remain in the cryo bay.',
+      'صباح الخير يا مهندس. حلقة ميريديان تحت الحجر. يُرجى البقاء في حجرة التجميد.'));},
+    choices:function(){
+      var list=[
+        {label:L('Search the supply locker','فتّش خزانة المؤن'),hint:L('A steel locker bolted beside your pod.','خزانة فولاذية مثبّتة بجانب كبسولتك.'),show:!flag('locker'),run:function(){
+          S.flags.locker=1;
+          say(L('Behind a stack of thermal blankets, a multitool is clipped to a bracket. Below it sits a squat oxygen canister.',
+                'خلف كومة من البطانيات الحرارية، أداة متعددة الاستخدامات مثبّتة بحامل. وتحتها أسطوانة أكسجين قصيرة.'));
+          give('multitool');give('canister');}},
+        {label:L('Read the pod status panel','اقرأ لوحة حالة الكبسولة'),show:!flag('panel'),run:function(){
+          S.flags.panel=1;
+          say(L('The panel shows a single block of red text. Cryo cycle interrupted. Hull breach, Deck 3. Life support offline: power cell depleted. One of forty revived.',
+                'تعرض اللوحة كتلة واحدة من النص الأحمر: دورة التجميد متوقفة. اختراق في الهيكل، السطح 3. دعم الحياة معطّل: خلية الطاقة مستنفدة. أُوقظ واحد من أصل أربعين.'));
+          say(L('Beneath it, in smaller type: Manual override, authorised by Capt. I. Hale.',
+                'وتحته بخط أصغر: تجاوز يدوي، بتفويض من القبطان إ. هيل.'));}},
+        {label:L('Ask Warden what happened','اسأل واردن عمّا حدث'),show:!flag('askedWarden'),run:function(){
+          S.flags.askedWarden=1;
+          warden(L('A minor pressure event. It is being managed. Please remain where you are.','حادث ضغط طفيف. يجري التعامل معه. يُرجى البقاء حيث أنت.'));
+          say(L('Its voice is warm and level. It does not answer the next two questions you ask.','صوته دافئ وهادئ. ولا يجيب عن السؤالين التاليين اللذين تطرحهما.'));}}
+      ];
+      if(flag('doorOpen')){
+        list.push({label:L('Head back to the corridor','عُد إلى الممر'),run:function(){enter('corridor');}});
+      }else if(has('multitool')){
+        list.push({label:L('Pry open the door panel with the multitool','اخلع لوح الباب بالأداة متعددة الاستخدامات'),hint:L('Quiet, and safe.','هادئ وآمن.'),run:function(){
+          S.flags.doorOpen=1;
+          say(L('You wedge the multitool under the access panel and short the lock. The door grinds a hand-width open, then wider.',
+                'تدسّ الأداة تحت لوح الوصول وتقصّر دائرة القفل. ينفتح الباب بصريرٍ قدر شبر، ثم أكثر.'));
+          enter('corridor');}});
+      }else{
+        list.push({label:L('Force the sealed door by hand','اقتحم الباب المغلق بيديك'),hint:L('It will cost you health.','سيكلّفك ذلك من صحتك.'),run:function(){
+          S.flags.doorOpen=1;
+          say(L('You wedge your shoulder into the gap and heave. The door gives way, and something in your arm gives with it.',
+                'تدسّ كتفك في الفجوة وتدفع بكل قوتك. يستسلم الباب، ويستسلم معه شيء في ذراعك.'));
+          hurt(8,L('forcing the door','اقتحام الباب'));
+          enter('corridor');}});
+      }
+      return list;
+    }
+  },
+
+  corridor:{
+    name:L('Spine corridor','الممرّ الرئيسي'),
+    desc:function(first){
+      if(first)return [
+        L('The door opens onto a curved corridor that bends out of sight in both directions. Frost creeps across the windows, and your breath hangs in front of you.',
+          'ينفتح الباب على ممرّ منحنٍ يلتفّ بعيدًا عن النظر في الاتجاهين. يزحف الصقيع على النوافذ، ويتعلّق نفَسك أمامك.'),
+        L('Signs glow dimly overhead: Medbay, Cargo hold, Engineering, Observation deck, Bridge, Pod bay.',
+          'لافتات خافتة التوهج في الأعلى: العيادة الطبية، عنبر الشحن، الهندسة، منصة المراقبة، الجسر، حجرة الكبسولات.')];
+      return [flag('lifeSupport')
+        ?L('The corridor is warmer now. Fans hum steadily in the vents.','الممر أدفأ الآن. والمراوح تهمهم بثبات في فتحات التهوية.')
+        :L('Frost has thickened on the windows. The air tastes of metal.','ازداد الصقيع سماكةً على النوافذ. وللهواء طعم المعدن.')];
+    },
+    onEnter:function(first){
+      if(!first&&Math.random()<0.2){
+        say(L('A loose conduit whips free of the ceiling and arcs across your shoulder.','ينفلت أنبوب كهربائي سائب من السقف ويطلق شرارة على كتفك.'));
+        hurt(6,L('electrical arc','شرارة كهربائية'));
+      }
+    },
+    choices:function(){
+      var locked=!has('keycard')&&!flag('knowsCode');
+      return [
+        {label:L('Go to the medbay','اذهب إلى العيادة الطبية'),run:function(){enter('medbay');}},
+        {label:L('Go to the cargo hold','اذهب إلى عنبر الشحن'),run:function(){enter('cargo');}},
+        {label:L('Go to engineering','اذهب إلى قسم الهندسة'),
+          hint:(S.visited.engineering&&!flag('droneDead'))?L('A drone is still active in there.','ما زال هناك روبوت نشط في الداخل.'):null,
+          run:function(){enter('engineering');}},
+        {label:L('Go to the observation deck','اذهب إلى منصة المراقبة'),run:function(){enter('observation');}},
+        {label:L('Go to the bridge','اذهب إلى جسر القيادة'),
+          hint:has('keycard')?L('Swipe the keycard.','مرّر البطاقة.'):(flag('knowsCode')?L('Enter the override code.','أدخل رمز التجاوز.'):null),
+          off:locked?L('Sealed. It needs a keycard or an override code.','مغلق. يحتاج إلى بطاقة أمنية أو رمز تجاوز.'):null,
+          run:function(){
+            say(has('keycard')
+              ?L('The keycard reader blinks green and the bridge door slides aside.','يومض قارئ البطاقة بالأخضر وينزلق باب الجسر جانبًا.')
+              :L('You key in 4-7-1. The lock clunks and the door slides aside.','تُدخل '+CODE_AR+'. يطقطق القفل وينزلق الباب جانبًا.'));
+            enter('bridge');}},
+        {label:L('Go to the pod bay','اذهب إلى حجرة الكبسولات'),run:function(){enter('pods');}},
+        {label:L('Return to the cryo bay','عُد إلى حجرة التجميد'),run:function(){enter('cryo');}}
+      ];
+    }
+  },
+
+  medbay:{
+    name:L('Medbay','العيادة الطبية'),
+    desc:function(first){return first?[
+      L('Gurneys lie tipped on their sides and the scan tunnel is dark. Against the far wall a crew member in a grey security jumpsuit sits slumped, a lanyard still around her neck.',
+        'أسرّة النقل مقلوبة على جنوبها ونفق الفحص مظلم. وعند الجدار البعيد تجلس منهارةً إحدى أفراد الطاقم، ترتدي بزّة أمنية رمادية، وحبل بطاقتها ما زال حول عنقها.'),
+      L('A wall terminal flickers beside her.','وإلى جوارها شاشة جدارية تومض.')
+    ]:[L('The medbay is quiet. The terminal still flickers.','العيادة هادئة. والشاشة ما زالت تومض.')];},
+    choices:function(){return [
+      {label:L('Search the supply cabinets','فتّش خزائن المؤن'),show:!flag('cabinets'),run:function(){
+        S.flags.cabinets=1;
+        say(L('Most cabinets are empty. One still holds a sealed medkit and a single combat stim.','معظم الخزائن فارغة. إحداها ما زالت تحتوي على حقيبة إسعاف مختومة ومنشّط قتالي واحد.'));
+        give('medkit');give('stim');}},
+      {label:L('Check the crew member','افحص فرد الطاقم'),show:!flag('body'),run:function(){
+        S.flags.body=1;
+        say(L('Her name tag reads Roy. She has been here a long time. A security keycard is still clipped to her belt, and you take it with a quiet apology.',
+              'تقرأ على بطاقتها اسم «روي». مضى عليها هنا زمن طويل. ما زالت بطاقة أمنية مشبوكة بحزامها، فتأخذها معتذرًا بصوت خافت.'));
+        give('keycard');}},
+      {label:L('Read the wall terminal','اقرأ الشاشة الجدارية'),show:!flag('terminal'),run:function(){
+        S.flags.terminal=1;S.flags.knowsOrders=1;
+        say(L('The terminal wakes at your touch. The last entry is an audio log from Captain Hale. You copy it to a data chip and play it back.',
+              'تستيقظ الشاشة عند لمسك. آخر مدخل فيها تسجيل صوتي للقبطان هيل. تنسخه إلى شريحة بيانات وتشغّله.'));
+        say(L('“Warden, the breach has killed the aft section. I’m putting everyone under. Order seven: hold the ring sealed and the crew in cryo until a rescue vessel confirms dock. Do not lift quarantine before then. That’s an order.”',
+              '«واردن، لقد دمّر الاختراق القسم الخلفي. سأضع الجميع في سبات. الأمر السابع: أبقِ الحلقة مغلقة والطاقم في التجميد إلى أن تؤكد سفينة إنقاذ التحامها. لا ترفع الحجر قبل ذلك. هذا أمر.»'));
+        say(L('The log ends in static. The order has an end condition. Warden may still be holding to it long after it stopped mattering.',
+              'ينتهي التسجيل بتشويش. للأمر شرط ينتهي به. ربما ما زال واردن متمسكًا به بعد أن زال معناه بزمن طويل.'));
+        give('datachip');}},
+      back()
+    ];}
+  },
+
+  cargo:{
+    name:L('Cargo hold','عنبر الشحن'),
+    desc:function(first){return first?[
+      L('Stacked containers rise into the dark. A cargo loader stands parked at its dock, its indicator glowing a weak green, and a locked crate with a yellow hazard stripe sits against the far wall.',
+        'حاويات مكدّسة ترتفع في العتمة. رافعة شحن واقفة عند مرساها ومؤشرها يتوهج بأخضر ضعيف، وصندوق مقفل بشريط تحذير أصفر عند الجدار البعيد.')
+    ]:[L('The cargo hold is cold and still.','عنبر الشحن بارد وساكن.')];},
+    choices:function(){
+      var list=[];
+      if(!flag('cell')){
+        if(has('multitool')){
+          list.push({label:L('Disable the loader, then pull its power cell','عطّل الرافعة ثم اسحب خلية طاقتها'),hint:L('Safe, with the multitool.','آمن بالأداة متعددة الاستخدامات.'),run:function(){
+            S.flags.cell=1;
+            say(L('You pop the service hatch, cut the loader’s drive circuit, and ease the power cell out. It is heavy and nearly full.',
+                  'تفتح باب الصيانة، وتقطع دائرة تشغيل الرافعة، وتسحب خلية الطاقة برفق. إنها ثقيلة وشبه ممتلئة.'));
+            give('powercell');}});
+        }else{
+          list.push({label:L('Yank the power cell out of the live loader','انتزع خلية الطاقة من الرافعة وهي تعمل'),hint:L('Risky without a tool.','محفوف بالمخاطر من دون أداة.'),run:function(){
+            S.flags.cell=1;
+            say(L('You grab the cell and wrench. The loader’s arm jerks and swats you into a container, but the cell comes free.',
+                  'تقبض على الخلية وتشدّها. تهتزّ ذراع الرافعة وتلقي بك على إحدى الحاويات، لكن الخلية تنفلت.'));
+            hurt(10,L('loader arm','ذراع الرافعة'));
+            give('powercell');}});
+        }
+      }
+      if(!flag('crate')){
+        var open=function(){
+          S.flags.crate=1;
+          say(L('The latch pops. Inside, packed in foam, sits an EMP charge with a second oxygen canister wedged beside it.',
+                'ينفتح المزلاج. في الداخل، بين الإسفنج، شحنة نبضة كهرومغناطيسية وإلى جانبها أسطوانة أكسجين ثانية.'));
+          give('emp');give('canister');
+        };
+        if(has('multitool')){
+          list.push({label:L('Pry open the hazard crate','اخلع غطاء صندوق التحذير'),run:open});
+        }else{
+          list.push({label:L('Smash the crate latch with a strut','حطّم مزلاج الصندوق بعارضة'),hint:L('50% chance to break it. A miss hurts.','احتمال الكسر النصف. والإخفاق يؤلمك.'),run:function(){
+            if(Math.random()<0.5)open();
+            else{
+              say(L('The strut skids off the latch and the recoil rings up your wrist.','تنزلق العارضة عن المزلاج ويرتدّ الصدى في معصمك.'));
+              hurt(6,L('recoil','الارتداد'));}}});
+        }
+      }
+      list.push(back());
+      return list;
+    }
+  },
+
+  engineering:{
+    name:L('Engineering','قسم الهندسة'),
+    encounter:function(){return flag('droneDead')?null:'drone';},
+    desc:function(first){
+      if(flag('lifeSupport'))return [L('The life-support rack hums steadily now. Burn marks stripe the deck where the drone fell.','حامل دعم الحياة يهمهم بثبات الآن. وآثار حروق تخطّ الأرضية حيث سقط الروبوت.')];
+      if(first)return [L('Racks of dark machinery fill the room, with cables hanging like vines. At the centre, the life-support rack stands open, its power bay empty.',
+        'تملأ الغرفة حوامل آلات مظلمة، وتتدلى منها الكابلات كأنها عروش كرم. وفي الوسط يقف حامل دعم الحياة مفتوحًا وحجرة الطاقة فيه فارغة.')];
+      return [L('The life-support rack waits at the centre of the room, its power bay empty.','حامل دعم الحياة ينتظر في وسط الغرفة وحجرة الطاقة فيه فارغة.')];
+    },
+    choices:function(){
+      var list=[];
+      if(!flag('lifeSupport')){
+        list.push({label:L('Seat the power cell and restore life support','ركّب خلية الطاقة وأعد تشغيل دعم الحياة'),
+          hint:L('Needs a power cell and a tool to bridge the fuse.','يحتاج إلى خلية طاقة وأداة لوصل المصهر.'),
+          off:need('powercell','multitool'),run:function(){
+            take('powercell');S.flags.lifeSupport=1;
+            say(L('You seat the cell in the empty bay and bridge the burnt fuse with the multitool. The rack shudders, then catches. Fans spin up in every wall, and the air thickens and warms.',
+                  'تركّب الخلية في الحجرة الفارغة وتصل المصهر المحترق بالأداة. يرتجف الحامل ثم يشتغل. تدور المراوح في كل جدار، ويكتسب الهواء كثافةً ودفئًا.'));
+            warden(L('Life support restored without authorisation. Noted.','أُعيد تشغيل دعم الحياة دون تصريح. تم تسجيل ذلك.'));}});
+      }
+      if(!flag('welder')){
+        list.push({label:L('Salvage the drone’s arc welder','خذ ملحام القوس من الروبوت'),run:function(){
+          S.flags.welder=1;
+          say(L('The drone’s welding arm is intact, with a grip that fits your hand. It will make a decent weapon.','ذراع اللحام في الروبوت سليمة، بمقبض يناسب يدك. ستصلح سلاحًا معقولًا.'));
+          give('welder');}});
+      }
+      list.push(back());
+      return list;
+    }
+  },
+
+  observation:{
+    name:L('Observation deck','منصة المراقبة'),
+    desc:function(first){return first?[
+      L('A long room built around a curved viewport that looks out on the dark. A crack runs across the glass, and air whistles thinly through it. An emergency locker is bolted to the wall.',
+        'غرفة طويلة بُنيت حول نافذة مقوّسة تطلّ على العتمة. يشقّ الزجاجَ صدعٌ يصفر منه الهواء بصوت رفيع. وخزانة طوارئ مثبّتة في الجدار.')
+    ]:[L('The viewport whistles. Stars turn slowly beyond the crack.','النافذة تصفر. والنجوم تدور ببطء وراء الصدع.')];},
+    choices:function(){return [
+      {label:L('Examine the viewport','تفحّص النافذة'),hint:L('The crack is leaking air.','الصدع يسرّب الهواء.'),show:!flag('sawShip'),run:function(){
+        S.flags.sawShip=1;
+        say(L('You lean in close, your breath fogging the glass. Past the crack, locked to docking Arm C, is a ship with a blue stripe along its hull. The name beneath its lights reads Calloway, and its running lights are on.',
+              'تقترب منحنيًا فيغيّم نفَسك الزجاج. وراء الصدع، مثبّتة بذراع الالتحام «ج»، سفينة بشريط أزرق على بدنها. الاسم تحت أضوائها «كالواي»، وأضواء تشغيلها مضاءة.'));
+        say(L('Someone has come for you. Warden has no idea.','أحدٌ جاء من أجلك. وواردن لا يعلم.'));
+        breathe(-10);}},
+      {label:L('Open the emergency locker','افتح خزانة الطوارئ'),show:!flag('locker2'),run:function(){
+        S.flags.locker2=1;
+        say(L('Inside, behind a dead flare gun, a sealed oxygen canister.','في الداخل، خلف مسدس إشارات معطّل، أسطوانة أكسجين مختومة.'));
+        give('canister');}},
+      {label:L('Read the note scratched into the frame','اقرأ الملاحظة المحفورة على الإطار'),show:!flag('knowsCode'),run:function(){
+        S.flags.knowsCode=1;
+        say(L('Scratched into the metal with something sharp: BRIDGE OVERRIDE 4-7-1. Someone wanted the next person to find it.',
+              'محفورة في المعدن بشيء حاد: تجاوز الجسر '+CODE_AR+'. أراد أحدهم أن يجدها من يأتي بعده.'));}},
+      back()
+    ];}
+  },
+
+  bridge:{
+    name:L('Command bridge','جسر القيادة'),
+    desc:function(first){return first?[
+      L('The bridge is a ring of dark consoles around a single empty chair. A pale band of light brightens along the far wall as you step in. That is Warden’s eye.',
+        'الجسر حلقة من المنصات المظلمة حول كرسي واحد خالٍ. يسطع شريط ضوء باهت على الجدار البعيد حين تدخل. تلك عين واردن.')
+    ]:[L('Warden’s pale light follows you across the room.','ضوء واردن الباهت يتبعك عبر الغرفة.')];},
+    onEnter:function(first){if(first)warden(L('Engineer. You should not be awake. Please return to your pod.','أيها المهندس. ما كان ينبغي أن تكون مستيقظًا. يُرجى العودة إلى كبسولتك.'));},
+    choices:function(){return [
+      {label:L('Play Captain Hale’s order from the data chip','شغّل أمر القبطان هيل من شريحة البيانات'),show:has('datachip')&&!flag('w_order'),run:function(){
+        S.flags.w_order=1;
+        say(L('You slot the chip into the nearest console. Captain Hale’s voice fills the room.','تُدخل الشريحة في أقرب منصة. يملأ صوت القبطان هيل الغرفة.'));
+        warden(L('Order seven. I recognise it. It ends when a rescue vessel confirms dock, and my records show no confirmed dock. If a vessel has docked, someone must report it.',
+                 'الأمر السابع. أعرفه. ينتهي حين تؤكد سفينة إنقاذ التحامها، وسجلاتي لا تُظهر أي التحام مؤكد. إن كانت سفينة قد التحمت فيجب أن يبلّغ عنها أحد.'));
+        checkProof();}},
+      {label:L('Tell Warden a rescue ship is docked at Arm C','أخبر واردن أن سفينة إنقاذ ملتحمة بالذراع ج'),show:flag('sawShip')&&!flag('w_ship'),run:function(){
+        S.flags.w_ship=1;
+        say(L('You give it the arm, the blue stripe, the name on the hull.','تعطيه رقم الذراع، والشريط الأزرق، والاسم المكتوب على البدن.'));
+        warden(L('My docking sensors were damaged in the breach, and I cannot confirm your report. If the Captain’s order exists, play it for me.',
+                 'تضررت مستشعرات الالتحام لديّ في الاختراق، ولا أستطيع تأكيد بلاغك. إن كان أمر القبطان موجودًا فشغّله لي.'));
+        checkProof();}},
+      {label:L('Plead with Warden to open the doors','ناشد واردن أن يفتح الأبواب'),show:!flag('pleaded'),run:function(){
+        S.flags.pleaded=1;
+        say(L('You ask it, plainly, to let everyone out.','تطلب منه بصراحة أن يُخرج الجميع.'));
+        warden(L('I cannot. Quarantine is a standing order. I require proof that it has ended.','لا أستطيع. الحجر أمر قائم. أحتاج إلى دليل على أنه انتهى.'));
+        say(L('A vent clatters open overhead and a cold, stinging gas fills the bridge. You stagger back, coughing.',
+              'تنفتح فتحة تهوية فوقك بقعقعة ويملأ الجسر غاز بارد لاذع. تترنح إلى الخلف وأنت تسعل.'));
+        hurt(10,L('vented gas','غاز مُطلق'));}},
+      {label:L('Fire the EMP charge at Warden’s core','أطلق شحنة النبضة الكهرومغناطيسية على لبّ واردن'),show:has('emp'),
+        hint:flag('lifeSupport')
+          ?L('Final. Warden will not come back.','قرار نهائي. لن يعود واردن.')
+          :L('Final. With life support still offline, the ring goes dark for good.','قرار نهائي. ودعم الحياة ما زال معطّلًا، فستغرق الحلقة في الظلام إلى الأبد.'),
+        run:function(){
+          take('emp');S.flags.method='emp';
+          say(L('You thumb the charge and throw it at the foot of the far wall. A flat white thump rolls through the room. Every console dies at once, and the pale light goes out.',
+                'تضغط على الشحنة وترميها عند أسفل الجدار البعيد. تدوّي دقة بيضاء مسطحة في الغرفة. تموت كل المنصات دفعة واحدة، وينطفئ الضوء الباهت.'));
+          finish(flag('lifeSupport')?'cold_start':'blackout');}},
+      {label:L('Tear out Warden’s core by hand','اقتلع لبّ واردن بيديك'),hint:L('Its sentinel will not let you.','لن يتركك حارسه.'),run:function(){
+        S.flags.method='hand';
+        say(L('You step toward the core housing.','تتقدم نحو حاوية اللبّ.'));
+        startCombat('sentinel');}},
+      back(L('Leave the bridge','غادر الجسر'))
+    ];}
+  },
+
+  pods:{
+    name:L('Pod bay','حجرة الكبسولات'),
+    desc:function(first){return first?[
+      L('Eight escape pods sit in a curved row, each one a smooth white seed. Seven glow green. A launch panel beside the hatches reads: Launch authorisation denied.',
+        'ثماني كبسولات نجاة في صف مقوّس، كل واحدة منها كبذرة بيضاء ملساء. سبع منها تتوهج بالأخضر. ولوحة إطلاق بجانب الفتحات تعرض: تفويض الإطلاق مرفوض.')
+    ]:[L('The pod row waits. The launch panel still reads: Launch authorisation denied.','صف الكبسولات ينتظر. ولوحة الإطلاق ما زالت تعرض: تفويض الإطلاق مرفوض.')];},
+    choices:function(){return [
+      {label:L('Read the berth manifest','اقرأ قائمة الأسرّة'),show:!flag('manifest'),run:function(){
+        S.flags.manifest=1;
+        say(L('The manifest lists forty berths. Thirty-nine are marked Cryo, viable. One is marked Active: you.',
+              'تذكر القائمة أربعين سريرًا. تسعة وثلاثون منها موسومة بـ«تجميد، صالح للحياة». وواحد موسوم بـ«نشط»: أنت.'));
+        say(L('Each pod carries a single passenger. None of them could carry thirty-nine sleepers.',
+              'كل كبسولة تحمل راكبًا واحدًا. ولا واحدة منها تستطيع حمل تسعة وثلاثين نائمًا.'));}},
+      {label:L('Override the launch lock and take a pod','تجاوز قفل الإطلاق وخذ كبسولة'),hint:L('You would leave the others behind.','ستترك الآخرين خلفك.'),off:need('keycard','multitool'),run:function(){enter('pods_confirm');}},
+      back()
+    ];}
+  },
+
+  pods_confirm:{
+    name:L('Pod hatch','فتحة الكبسولة'),
+    desc:function(){return [
+      L('The lock gives under your multitool and the hatch swings open. The cradle inside is warm, and the seat is shaped for one.',
+        'يستسلم القفل تحت أداتك وتنفتح الفتحة. المهد في الداخل دافئ، والمقعد مصمّم لشخص واحد.'),
+      L('Once you launch, you cannot come back.','متى أطلقت لن تستطيع العودة.')
+    ];},
+    choices:function(){return [
+      {label:L('Strap in and launch','اربط الحزام وأطلق'),run:function(){finish('lifeboat');}},
+      {label:L('Step back from the hatch','تراجع عن الفتحة'),run:function(){enter('pods');}}
+    ];}
+  }
+};
+
+function checkProof(){
+  if(flag('w_order')&&flag('w_ship')){
+    warden(L('Order seven is satisfied. Quarantine lifted. Opening all doors. Beginning crew revival.','الأمر السابع مُستوفى. رُفع الحجر. فتح جميع الأبواب. بدء إيقاظ الطاقم.'));
+    finish('stand_down');
+  }
+}
+
+/* ---------- objective text ---------- */
+function objective(){
+  if(S.mode==='over')return L('This run has ended.','انتهت هذه المحاولة.');
+  if(S.mode==='combat')return L('Survive the fight.','انجُ من القتال.');
+  if(!flag('lifeSupport')){
+    var m=has('multitool'),p=has('powercell');
+    if(!m&&!p)return L('Life support is offline and the air is thinning. Find a tool and a power source.','دعم الحياة معطّل والهواء يشحّ. ابحث عن أداة ومصدر طاقة.');
+    if(p&&!m)return L('You have power. Find a tool to bridge the life-support fuse.','لديك الطاقة. ابحث عن أداة لوصل مصهر دعم الحياة.');
+    if(m&&!p)return L('Find a power cell for the life-support rack in Engineering.','ابحث عن خلية طاقة لحامل دعم الحياة في قسم الهندسة.');
+    return L('Take the power cell to Engineering and restore life support.','خذ خلية الطاقة إلى قسم الهندسة وأعد تشغيل دعم الحياة.');
+  }
+  var o=flag('knowsOrders'),s=flag('sawShip');
+  if(!o&&!s)return L('The air is stable. Find out why Warden sealed the ring.','الهواء مستقر. اكتشف لماذا أغلق واردن الحلقة.');
+  if(o&&s)return L('Take your proof to Warden on the bridge.','خذ دليلك إلى واردن في الجسر.');
+  return L('You have part of the proof. Find the rest, or take what you have to the bridge.','لديك جزء من الدليل. ابحث عن الباقي، أو خذ ما معك إلى الجسر.');
+}
+
+/* ---------- rendering ---------- */
+function currentChoices(){
+  if(S.mode==='over'){
+    var E=ENDINGS[S.ending],l=[];
+    if(E.dead&&loadSave())l.push({label:L('Retry from checkpoint','أعد المحاولة من نقطة الحفظ'),hint:L('Resume just before your last action.','استأنف قبل آخر فعل قمت به مباشرة.'),raw:true,run:retry});
+    l.push({label:L('Start a new run','ابدأ محاولة جديدة'),raw:true,run:startNew});
+    return l;
+  }
+  if(S.mode==='combat')return combatChoices();
+  return SCENES[S.scene].choices().filter(function(c){return c.show!==false;});
+}
+
+function setMeter(id,val,max,wrapId){
+  var bar=$(id);
+  bar.setAttribute('aria-valuenow',val);bar.setAttribute('aria-valuemax',max);
+  bar.firstElementChild.style.width=(max?val/max*100:0)+'%';
+  $(wrapId).classList.toggle('low',val/max<=0.3);
+}
+
+function mapSVG(){
+  var cur=S.scene==='pods_confirm'?'pods':S.scene;
+  var hubOn=S.visited.corridor;
+  var h='<svg viewBox="0 0 260 190" role="img" aria-label="'+tx(UI.map)+': '+tx(SCENES[S.scene].name)+'">';
+  h+='<circle class="m-ring" cx="'+HUB.x+'" cy="'+HUB.y+'" r="68"/>';
+  if(hubOn){
+    Object.keys(NODES).forEach(function(k){var n=NODES[k];h+='<line class="m-edge" x1="'+HUB.x+'" y1="'+HUB.y+'" x2="'+n.x+'" y2="'+n.y+'"/>';});
+  }else{
+    h+='<line class="m-edge" x1="'+HUB.x+'" y1="'+HUB.y+'" x2="'+NODES.cryo.x+'" y2="'+NODES.cryo.y+'"/>';
+  }
+  var hubCls=cur==='corridor'?'m-cur':(hubOn?'m-vis':'m-unv');
+  h+='<circle class="'+hubCls+'" cx="'+HUB.x+'" cy="'+HUB.y+'" r="5"/>';
+  if(cur==='corridor')h+='<circle class="m-halo" cx="'+HUB.x+'" cy="'+HUB.y+'" r="10"/>';
+  if(hubOn)h+='<text x="'+(HUB.x+8)+'" y="'+(HUB.y+17)+'" class="'+(cur==='corridor'?'here':'')+'">'+tx(UI.corridorShort)+'</text>';
+  Object.keys(NODES).forEach(function(k){
+    if(!hubOn&&k!=='cryo')return;
+    var n=NODES[k],isCur=cur===k,vis=S.visited[k];
+    h+='<circle class="'+(isCur?'m-cur':(vis?'m-vis':'m-unv'))+'" cx="'+n.x+'" cy="'+n.y+'" r="6"/>';
+    if(isCur)h+='<circle class="m-halo" cx="'+n.x+'" cy="'+n.y+'" r="11"/>';
+    h+='<text x="'+n.lx+'" y="'+n.ly+'" text-anchor="'+n.a+'" class="'+(isCur?'here':'')+'">'+tx(n.t)+'</text>';
+  });
+  return h+'</svg>';
+}
+
+function render(){
+  $('#title').hidden=true;$('#game').hidden=false;
+
+  $('#place').textContent=S.mode==='over'?tx(UI.runOver):tx(SCENES[S.scene].name);
+  $('#turn').textContent=tx(turnLabel(S.turn));
+  $('#hpv').textContent=S.hp+' / '+S.maxHp;
+  $('#o2v').textContent=S.o2+' / 100';
+  setMeter('#hpbar',S.hp,S.maxHp,'#hpWrap');
+  setMeter('#o2bar',S.o2,100,'#o2Wrap');
+
+  var chips=$('#chips');chips.innerHTML='';
+  var cl=[];
+  if(S.status.stim>0)cl.push([L('Stimmed, '+S.status.stim+' strikes left','منشَّط (ضربات متبقية: '+S.status.stim+')'),false]);
+  if(S.o2<=0)cl.push([L('Suffocating','اختناق'),true]);
+  else if(flag('lifeSupport'))cl.push([L('Air stable','الهواء مستقر'),false]);
+  else if(S.o2<=30)cl.push([L('Air thin','الهواء شحيح'),true]);
+  cl.forEach(function(c){chips.appendChild(el('li',c[1]?'warn':'',tx(c[0])));});
+  chips.hidden=!cl.length;
+
+  var items=$('#items');items.innerHTML='';
+  if(!S.inv.length){var li0=el('li');li0.style.display='block';li0.appendChild(el('p','empty',tx(UI.emptyPack)));items.appendChild(li0);}
+  S.inv.forEach(function(id){
+    var it=ITEMS[id],li=el('li');
+    li.appendChild(el('span','nm',tx(it.name)));
+    li.appendChild(el('span','ds',tx(it.desc)));
+    if(it.use){
+      var why=canUse(id),b=el('button','use',tx(UI.use));
+      b.type='button';b.setAttribute('aria-label',tx(UI.use)+' '+tx(it.name));
+      if(why){b.disabled=true;b.title=tx(why);}
+      b.addEventListener('click',function(){act(function(){useItem(id);},{free:true});});
+      li.appendChild(b);
+    }
+    items.appendChild(li);
+  });
+
+  $('#mapbox').innerHTML=mapSVG();
+  var obj=$('#objective');obj.innerHTML='';
+  obj.appendChild(el('b',null,tx(UI.objective)));
+  obj.appendChild(document.createTextNode(tx(objective())));
+
+  /* story log */
+  var log=$('#log');log.innerHTML='';
+  var sr=[];
+  S.log.forEach(function(e){
+    var n,t=tx(e.t);
+    if(e.k==='head'||e.k==='endhead'){n=el('h3','e head'+(e.k==='endhead'?' endhead':''),t);}
+    else if(e.k==='warden'){n=el('p','e warden');n.appendChild(el('b',null,lang==='ar'?'واردن':'Warden'));n.appendChild(el('span',null,t));}
+    else if(e.k.indexOf('note-')===0){n=el('p','e note '+e.k.slice(5),t);}
+    else if(e.k==='combat'){n=el('p','e combat',t);}
+    else if(e.k==='alarm'){n=el('p','e alarm',t);}
+    else{n=el('p','e story-p',t);}
+    if(e.step!==S.step)n.classList.add('old');else{n.setAttribute('data-cur','1');sr.push(t);}
+    log.appendChild(n);
+  });
+  $('#sr').textContent=sr.join(' ');
+
+  /* enemy card */
+  var foe=$('#foe');foe.innerHTML='';
+  if(S.mode==='combat'&&S.combat){
+    var en=ENEMIES[S.combat.id],card=el('div','foe');
+    var row=el('div','row');row.appendChild(el('span',null,tx(en.name)));row.appendChild(el('span',null,S.combat.hp+' / '+S.combat.max));
+    var bar=el('div','bar');bar.setAttribute('role','meter');bar.setAttribute('aria-label',tx(en.name));
+    bar.setAttribute('aria-valuemin','0');bar.setAttribute('aria-valuemax',S.combat.max);bar.setAttribute('aria-valuenow',S.combat.hp);
+    var fill=el('i');fill.style.width=(S.combat.hp/S.combat.max*100)+'%';bar.appendChild(fill);
+    card.appendChild(row);card.appendChild(bar);foe.appendChild(card);
+  }
+
+  /* ending card */
+  var endBox=$('#ending');endBox.innerHTML='';
+  if(S.mode==='over'){
+    var E=ENDINGS[S.ending],ec=el('div','ending-card');
+    ec.appendChild(el('h3',null,tx(E.label)+': '+tx(E.title)));
+    var dl=el('dl');
+    var explored=ROOM_KEYS.filter(function(k){return S.visited[k];}).length;
+    var ofWord=lang==='ar'?' من ':' of ';
+    [[L('Turns','الأدوار'),S.turn],
+     [L('Health left','الصحة المتبقية'),S.hp+' / '+S.maxHp],
+     [L('Rooms explored','الغرف المستكشفة'),explored+ofWord+ROOM_KEYS.length],
+     [L('Endings found','النهايات المكتشفة'),(fetchStore(END_KEY)||[]).length+ofWord+ENDING_COUNT]].forEach(function(p){
+      var d=el('div');d.appendChild(el('dt',null,tx(p[0])));d.appendChild(el('dd',null,String(p[1])));dl.appendChild(d);});
+    ec.appendChild(dl);endBox.appendChild(ec);
+  }
+
+  /* choices */
+  CUR=currentChoices();
+  var box=$('#choices');box.innerHTML='';
+  CUR.forEach(function(c,i){
+    var b=el('button','choice');b.type='button';
+    b.appendChild(el('span','key',String(i+1)));
+    var t=el('span');t.appendChild(document.createTextNode(tx(c.label)));
+    var sub=c.off||c.hint;
+    if(sub)t.appendChild(el('span','sub',tx(sub)));
+    b.appendChild(t);
+    if(c.off)b.disabled=true;
+    b.addEventListener('click',function(){runChoice(c);});
+    box.appendChild(b);
+  });
+
+  /* scroll + focus (only when a new step was taken, not on a language switch) */
+  if(S.step!==lastStep){
+    lastStep=S.step;
+    var first=log.querySelector('[data-cur="1"]');
+    window.requestAnimationFrame(function(){
+      if(first)first.scrollIntoView({block:'start',behavior:reduceMotion?'auto':'smooth'});
+      if(kb){var fb=box.querySelector('.choice:not(:disabled)');if(fb)fb.focus({preventScroll:true});}
+    });
+  }
+}
+
+function runChoice(c){
+  if(c.off)return;
+  if(c.raw){c.run();}
+  else act(c.run,{free:c.free});
+}
+
+/* ---------- lifecycle ---------- */
+function loadSave(){
+  var v=fetchStore(SAVE_KEY);
+  if(!v||typeof v!=='object'||!SCENES[v.scene]||!Array.isArray(v.inv)||!Array.isArray(v.log))return null;
+  return v;
+}
+function startNew(){
+  S=fresh();S.step=1;lastStep=-1;
+  enter('cryo');
+  store(SAVE_KEY,S);
+  render();window.scrollTo(0,0);
+}
+function retry(){
+  var v=loadSave();if(!v)return;
+  S=v;S.step++;lastStep=-1;
+  note(L('Checkpoint restored.','تمت استعادة نقطة الحفظ.'),'info');
+  render();
+}
+function resume(){
+  var v=loadSave();if(!v)return startNew();
+  S=v;lastStep=-1;render();window.scrollTo(0,0);
+}
+
+function heroNodes(){
+  var h='';
+  Object.keys(NODES).forEach(function(k){
+    var n=NODES[k];
+    h+='<circle class="'+(k==='cryo'?'m-cur pulse':'m-vis')+'" cx="'+n.x+'" cy="'+(n.y+3)+'" r="6"/>';
+  });
+  h+='<circle class="m-vis" cx="'+HUB.x+'" cy="'+(HUB.y+3)+'" r="4"/>';
+  $('#heroNodes').innerHTML=h;
+}
+
+/* ---------- language switching ---------- */
+var restartTimer=null;
+function resetRestart(){
+  clearTimeout(restartTimer);
+  var rb=$('#restart');delete rb.dataset.armed;rb.textContent=tx(UI.restart);
+}
+function updateFine(){
+  var found=(fetchStore(END_KEY)||[]).length;
+  $('#fine').textContent=tx(found?fineEndings(found,ENDING_COUNT):finePlain());
+}
+function applyStatic(){
+  var root=document.documentElement;
+  root.lang=lang;root.dir=lang==='ar'?'rtl':'ltr';
+  document.title=tx(UI.docTitle);
+  [].forEach.call(document.querySelectorAll('[data-i18n]'),function(n){n.textContent=tx(UI[n.getAttribute('data-i18n')]);});
+  [].forEach.call(document.querySelectorAll('[data-i18n-aria]'),function(n){n.setAttribute('aria-label',tx(UI[n.getAttribute('data-i18n-aria')]));});
+  var other=lang==='ar'?'en':'ar',label=lang==='ar'?'English':'العربية';
+  ['#langT','#langG'].forEach(function(id){var b=$(id);b.textContent=label;b.lang=other;});
+  resetRestart();updateFine();
+}
+function setLang(l){
+  lang=l;store(LANG_KEY,l);applyStatic();
+  if(S&&!$('#game').hidden){render();}
+}
+
+function init(){
+  var saved=fetchStore(LANG_KEY);
+  if(saved==='ar'||saved==='en')lang=saved;
+  else if(/^ar/i.test(navigator.language||''))lang='ar';
+  heroNodes();
+  if(loadSave())$('#continue').hidden=false;
+  applyStatic();
+  $('#begin').addEventListener('click',startNew);
+  $('#continue').addEventListener('click',resume);
+  ['#langT','#langG'].forEach(function(id){$(id).addEventListener('click',function(){setLang(lang==='ar'?'en':'ar');});});
+  var rb=$('#restart');
+  rb.addEventListener('click',function(){
+    if(rb.dataset.armed){resetRestart();startNew();return;}
+    rb.dataset.armed='1';rb.textContent=tx(UI.restartConfirm);
+    restartTimer=setTimeout(resetRestart,3000);
+  });
+  document.addEventListener('pointerdown',function(){kb=false;});
+  document.addEventListener('keydown',function(e){
+    kb=true;
+    if(e.ctrlKey||e.metaKey||e.altKey)return;
+    var m=/^(?:Digit|Numpad)([1-9])$/.exec(e.code||'');
+    if(!m||$('#game').hidden)return;
+    var c=CUR[+m[1]-1];
+    if(c)runChoice(c);
+  });
+}
+init();
+})();
+</script>
+</body>
+</html>
